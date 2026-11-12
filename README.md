@@ -41,7 +41,7 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 
 1. **Allow Input Monitoring.** PadPal reads key presses from the pad (and only the pad). macOS asks the first time; switch PadPal on in System Settings → Privacy & Security → Input Monitoring.
 2. **Allow Accessibility.** PadPal sends shortcuts to other apps. macOS asks the first time a key needs it.
-3. **Set up the pad.** Click the grid icon in the menu bar. If it says the pad layer isn't set up, click **Set up pad**. This writes PadPal's key codes to one layer of the pad (layer 1 by default) after saving a backup of the whole keymap.
+3. **Set up the pad.** Click the grid icon in the menu bar. If it says the pad layer isn't set up, click **Set up pad**. This writes PadPal's key codes to one of the pad's four layers after saving a backup of the whole keymap. By default that is the second layer (`"layer": 1` in the config file, counting from 0); to use a different one, change that number and click **Set up pad** again.
 4. **Switch the pad to that layer** with the pad's own layer key. On the other layers the pad behaves exactly as before.
 
 ## Using it
@@ -140,16 +140,6 @@ The pad runs QMK firmware with VIA support and exposes two things over USB: an o
 
 - **Keys.** PadPal uses the VIA channel once to set one layer's keys to codes macOS has no meaning for (F21–F24 and some international and language keys). Pressing them types nothing. PadPal listens to the pad's keyboard interface directly, sees which code arrived, and runs the action for the front app. Layouts are therefore pure software: switching apps never writes to the pad.
 - **Lights.** Color and effect changes go over the VIA channel and are not saved to the pad's memory, so they vanish when it is unplugged. PadPal restores the pad's own lighting when it quits.
-
-## Limits
-
-These come from the stock firmware, which only lets the computer set one effect and one color for all the keys, and one for the whole rim.
-
-- No individual key colors.
-- No transition that moves around the rim light by light.
-- The computer can't switch the pad's layer or see which layer it is on, so colors change even when you are on a layer PadPal doesn't use.
-
-Custom firmware would lift all three and is a possible future direction.
 
 ## Signing
 
