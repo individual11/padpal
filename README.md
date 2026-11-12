@@ -2,7 +2,12 @@
 
 # PadPal
 
-A macOS menu-bar app for the Work Louder Creator Micro macro pad. It gives the pad a different layout for every app, lights it in that app's color, and lets you edit everything in a visual editor. It works with the firmware the pad ships with: nothing is flashed.
+A macOS menu-bar app for the [Work Louder](https://www.worklouder.cc) Creator Micro macro pad. It gives the pad a different layout for every app, lights it in that app's color, and lets you edit everything in a visual editor. It works with the firmware the pad ships with: nothing is flashed.
+
+<p>
+  <img src="docs/pad.jpg" width="400" alt="A Creator Micro with its rim lit orange, the color of the Claude layout">
+  <img src="docs/panel.png" width="340" alt="The PadPal menu-bar panel showing the Default layout">
+</p>
 
 ![The PadPal layout editor](docs/editor.png)
 
@@ -16,7 +21,7 @@ A macOS menu-bar app for the Work Louder Creator Micro macro pad. It gives the p
 
 ## What you need
 
-- A Work Louder **Creator Micro** (the original, sold as "Micro Pad", USB ID `574C:E6E3`) running its stock VIA-enabled firmware. The Creator Micro 2 is different hardware and has not been tried.
+- A [Work Louder](https://www.worklouder.cc) **Creator Micro** (the original; it shows up over USB as "Micro Pad", ID `574C:E6E3`) running its stock VIA-enabled firmware. The [Creator Micro 2](https://www.worklouder.cc/creator-micro-2) is different hardware and has not been tried.
 - macOS 13 or later.
 - The Swift toolchain. The Xcode Command Line Tools are enough (`xcode-select --install`); full Xcode is not needed.
 
@@ -50,6 +55,8 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 ### Importing layouts safely
 
 A layout file can carry shell commands, things to open, and macros. Those run with your account's full access the moment the key is pressed, so a layout from a stranger can do real harm. When a file contains any, PadPal lists every one in full before importing and offers to import the layout without them. Read them; if you don't understand one, leave it out.
+
+<img src="docs/import-warning.png" width="440" alt="The warning PadPal shows before importing a layout with shell commands or macros">
 
 ### The config file
 
