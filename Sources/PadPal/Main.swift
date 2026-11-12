@@ -8,7 +8,7 @@ enum Main {
         exit(runCommand(cmd, Array(args.dropFirst())))
     }
 
-    /// Command-line tools: status, backup, setup, restore, dump.
+    /// Command-line tools: status, edit, inspect, backup, setup, restore, dump.
     static func runCommand(_ cmd: String, _ args: [String]) -> Int32 {
         if cmd == "status" {
             DistributedNotificationCenter.default().postNotificationName(
@@ -20,8 +20,17 @@ enum Main {
                 Notification.Name("local.padpal.edit"), object: nil, userInfo: nil, deliverImmediately: true)
             return 0
         }
+        if cmd == "inspect" {
+            guard let path = args.first, let data = FileManager.default.contents(atPath: path), let layouts = readLayouts(data) else {
+                print("inspect needs a PadPal layout file"); return 2
+            }
+            let risks = layouts.flatMap(\.riskLines)
+            print("\(layouts.count) layout\(layouts.count == 1 ? "" : "s"): \(layouts.map(\.name).joined(separator: ", "))")
+            print(risks.isEmpty ? "No shell commands, things to open, or macros." : "\(risks.count) action\(risks.count == 1 ? "" : "s") to read before importing:\n\n" + risks.joined(separator: "\n\n"))
+            return 0
+        }
         guard ["backup", "setup", "restore", "dump"].contains(cmd) else {
-            print("usage: PadPal [edit | status working|waiting|done|clear | backup [file] | setup [layer] | restore <file> | dump]")
+            print("usage: PadPal [edit | inspect <file> | status working|waiting|done|clear | backup [file] | setup [layer] | restore <file> | dump]")
             return 2
         }
         let pad = PadLink()

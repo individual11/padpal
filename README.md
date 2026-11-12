@@ -2,15 +2,15 @@
 
 # PadPal
 
-A macOS menu-bar app for the Work Louder Creator Micro macro pad. It gives the pad a different layout for every app, lights it in that app's colour, and lets you edit everything in a visual editor. It works with the firmware the pad ships with: nothing is flashed.
+A macOS menu-bar app for the Work Louder Creator Micro macro pad. It gives the pad a different layout for every app, lights it in that app's color, and lets you edit everything in a visual editor. It works with the firmware the pad ships with: nothing is flashed.
 
 ![The PadPal layout editor](docs/editor.png)
 
 ## What it does
 
 - **Per-app layouts.** The pad's keys, roller and knob change what they do when you switch apps. A Default layout covers everything else.
-- **Visual editor.** Click a key on a picture of the pad (or press it on the pad) and choose what it does: a keyboard shortcut, a media key, opening an app or link, a shell command, typing text, scrolling, or switching layout.
-- **Colour that follows the app.** Each layout can have a colour. The keys and the outer rim change to it when the app comes to the front, with a choice of transition.
+- **Visual editor.** Click a key on a picture of the pad (or press it on the pad) and choose what it does: a keyboard shortcut, a media key, opening an app or link, a shell command, typing text, scrolling, switching layout, or a macro that runs several of these in order.
+- **Color that follows the app.** Each layout can have a color. The keys and the outer rim change to it when the app comes to the front, with a choice of transition.
 - **Hold a key for Default.** Hold Command on your main keyboard and the pad uses the Default layout, whatever app is in front.
 - **Import and export.** Share a layout as a small JSON file.
 
@@ -42,10 +42,14 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 ## Using it
 
 - **Menu-bar panel.** Shows the current layout on a picture of the pad; cells flash as you press keys. Choose a layout by hand or let it follow the front app.
-- **Edit layouts.** Opens the editor. Add a layout, give it a colour, pick the apps it is active in, then click slots to assign actions. Changes apply as you make them. A slot left as "Same as Default" uses the Default layout's action.
+- **Edit layouts.** Opens the editor. Add a layout, give it a color, pick the apps it is active in, then click slots to assign actions. Changes apply as you make them. A slot left as "Same as Default" uses the Default layout's action.
 - **More → Import / Export.** Export one layout or all of them to a `.padpal.json` file. Importing adds layouts and never replaces yours: a clashing name gets a number, and an app you have already assigned stays where it is.
-- **Rim on app switch.** Off, Instant, Fade (through dark), Rotate (the new colour chases round the rim) or Sweep (a direct blend from one colour to the other).
+- **Rim on app switch.** Off, Instant, Fade (through dark), Rotate (the new color chases round the rim) or Sweep (a direct blend from one color to the other).
 - **Hold for Default layout.** Command by default; pick another modifier or turn it off.
+
+### Importing layouts safely
+
+A layout file can carry shell commands, things to open, and macros. Those run with your account's full access the moment the key is pressed, so a layout from a stranger can do real harm. When a file contains any, PadPal lists every one in full before importing and offers to import the layout without them. Read them; if you don't understand one, leave it out.
 
 ### The config file
 
@@ -77,7 +81,23 @@ Everything lives in `~/Library/Application Support/PadPal/config.json`, which yo
 }
 ```
 
-The first profile is the Default. Each binding has a `label` and one action: `keys`, `media`, `open`, `shell`, `text`, `scroll` or `profile`. Slot names are `roller.click`, `roller.ccw`, `roller.cw`, `knob.click`, `knob.ccw`, `knob.cw`, `top1`, `top2`, `a1`–`a4`, `b1`–`b4`, `corner.left`, `bot1` and `bot2`. Colours are a hue and saturation from 0 to 255.
+The first profile is the Default. Each binding has a `label` and one action: `keys`, `media`, `open`, `shell`, `text`, `scroll`, `profile` or `steps`. Slot names are `roller.click`, `roller.ccw`, `roller.cw`, `knob.click`, `knob.ccw`, `knob.cw`, `top1`, `top2`, `a1`–`a4`, `b1`–`b4`, `corner.left`, `bot1` and `bot2`. Colors are a hue and saturation from 0 to 255.
+
+### Macros
+
+A macro is a binding with `steps`: a list of actions run in order. A step is one of `keys`, `text`, `media`, `open`, `shell`, `scroll`, or `wait` (a pause in milliseconds). In the editor, choose **Macro (several steps)** as the action.
+
+```json
+"a3": {
+  "label": "Deploy",
+  "steps": [
+    { "keys": "cmd+k" },
+    { "text": "deploy" },
+    { "wait": 200 },
+    { "keys": "return" }
+  ]
+}
+```
 
 ### Command line
 
@@ -94,7 +114,8 @@ PadPal.app/Contents/MacOS/PadPal dump
 | `setup [layer]` | Back up, then write PadPal's codes to a layer |
 | `restore <file>` | Put a backup's keys and encoders back |
 | `edit` | Open the layout editor in the running app |
-| `status working\|waiting\|done\|clear` | Show a status colour on the rim |
+| `inspect <file>` | List a layout file's shell commands, things to open and macros, without importing it |
+| `status working\|waiting\|done\|clear` | Show a status color on the rim |
 
 ## Undoing it
 
@@ -111,15 +132,15 @@ Then quit PadPal and delete the app and its Application Support folder.
 The pad runs QMK firmware with VIA support and exposes two things over USB: an ordinary keyboard, and a raw channel that speaks the VIA protocol.
 
 - **Keys.** PadPal uses the VIA channel once to set one layer's keys to codes macOS has no meaning for (F21–F24 and some international and language keys). Pressing them types nothing. PadPal listens to the pad's keyboard interface directly, sees which code arrived, and runs the action for the front app. Layouts are therefore pure software: switching apps never writes to the pad.
-- **Lights.** Colour and effect changes go over the VIA channel and are not saved to the pad's memory, so they vanish when it is unplugged. PadPal restores the pad's own lighting when it quits.
+- **Lights.** Color and effect changes go over the VIA channel and are not saved to the pad's memory, so they vanish when it is unplugged. PadPal restores the pad's own lighting when it quits.
 
 ## Limits
 
-These come from the stock firmware, which only lets the computer set one effect and one colour for all the keys, and one for the whole rim.
+These come from the stock firmware, which only lets the computer set one effect and one color for all the keys, and one for the whole rim.
 
-- No individual key colours.
+- No individual key colors.
 - No transition that moves around the rim light by light.
-- The computer can't switch the pad's layer or see which layer it is on, so colours change even when you are on a layer PadPal doesn't use.
+- The computer can't switch the pad's layer or see which layer it is on, so colors change even when you are on a layer PadPal doesn't use.
 
 Custom firmware would lift all three and is a possible future direction.
 
@@ -133,6 +154,6 @@ The certificate and its key are kept in their own keychain file at `~/Library/Ap
 
 PadPal is an independent project. It is not made or endorsed by Work Louder, the QMK or VIA projects, or the makers of any app it includes example layouts for.
 
-## Licence
+## License
 
 MIT. See [LICENSE](LICENSE).

@@ -42,6 +42,11 @@ final class AppState: ObservableObject {
     @Published var editorProfile = ""        // profile shown in the layout editor
     private var editorWindow: NSWindow?
     @Published var recording = false         // the editor is waiting for a shortcut to be pressed
+    @Published var recordingStep: Int?       // macro step the shortcut is for; -1 appends each press; nil is the slot's own
+    @Published var macroSheet = false        // the macro step sheet is open
+    var macroOriginal: PadBinding?           // the slot's binding when the sheet opened, for Cancel (nil = it had none)
+    @Published var macroSelection: Int?      // selected row in the step sheet
+    @Published var testCountdown: Int?       // seconds left before a test run of a macro
     var recordMonitor: Any?
     private var status: String?               // Claude status shown on the rim, if any
     private let rimGen = Counter()            // bumped to cancel a rim animation in flight
@@ -152,7 +157,7 @@ final class AppState: ObservableObject {
             if self?.flash == input { self?.flash = nil }
         }
         if editorWindow?.isVisible == true && NSApp.isActive {
-            editorInput = input      // while editing, a pad press picks the slot instead of acting
+            if !macroSheet { editorInput = input }      // while editing, a pad press picks the slot instead of acting
             return
         }
         let active = Actions.isHolding(config.overrideKey) ? config.profiles[0] : profile
@@ -188,7 +193,7 @@ final class AppState: ObservableObject {
         applyRim()
     }
 
-    /// Moves the rim to the current profile's colour, using the chosen transition.
+    /// Moves the rim to the current profile's color, using the chosen transition.
     private func applyRim() {
         guard connected, status == nil, let original = originalGlow else { return }
         let style = config.rimStyle
@@ -203,7 +208,7 @@ final class AppState: ObservableObject {
                 pad.setBrightness(.glow, UInt8(full)); rim.level = full
             }
             if style == "fade" {
-                // Dim to off, change colour while dark, then come back up. No in-between colours.
+                // Dim to off, change color while dark, then come back up. No in-between colors.
                 rim.shown = nil
                 let steps = 9, startLevel = rim.level
                 for i in 1...steps {
@@ -220,8 +225,8 @@ final class AppState: ObservableObject {
                     usleep(22_000)
                 }
             } else if style == "sweep" {
-                // Blend straight from the old colour to the new one (a linear mix of red, green and
-                // blue), so the rim never shows the rainbow colours that lie between two hues.
+                // Blend straight from the old color to the new one (a linear mix of red, green and
+                // blue), so the rim never shows the rainbow colors that lie between two hues.
                 rim.shown = nil
                 let a = Self.rgb(hue: from.hue, sat: from.sat), b = Self.rgb(hue: target.hue, sat: target.sat)
                 if from.effect != 1 { pad.setLight(.glow, Light(effect: 1, hue: from.hue, sat: from.sat)) }
@@ -239,7 +244,7 @@ final class AppState: ObservableObject {
                 pad.setLight(.glow, target)
                 pad.setBrightness(.glow, UInt8(full)); rim.level = full
             } else if target.effect == 1 && style == "rotate" {
-                // The firmware's "snake" effect chases the new colour around the rim, then it settles.
+                // The firmware's "snake" effect chases the new color around the rim, then it settles.
                 pad.setLight(.glow, Light(effect: 17, hue: target.hue, sat: target.sat))
                 for _ in 0..<16 { guard rimGen.value == gen else { return }; usleep(50_000) }
                 pad.setLight(.glow, target)
@@ -276,14 +281,14 @@ final class AppState: ObservableObject {
         }
     }
 
-    /// Signed hue distance the short way round the colour wheel.
+    /// Signed hue distance the short way round the color wheel.
     nonisolated static func hueStep(_ from: UInt8, _ to: UInt8) -> Int {
         var d = Int(to) - Int(from)
         if d > 128 { d -= 256 } else if d < -128 { d += 256 }
         return d
     }
 
-    /// Pad colour (hue and saturation 0-255, full brightness) as red, green, blue in 0...1.
+    /// Pad color (hue and saturation 0-255, full brightness) as red, green, blue in 0...1.
     nonisolated static func rgb(hue: UInt8, sat: UInt8) -> (Double, Double, Double) {
         let h = Double(hue) / 255 * 6, s = Double(sat) / 255
         let x = 1 - abs(h.truncatingRemainder(dividingBy: 2) - 1)
@@ -344,9 +349,24 @@ final class AppState: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.reloadNote = nil }
     }
 
+    /// Runs a macro after a short countdown, so there is time to bring the target app to the front.
+    func testMacro(_ steps: [Step]) {
+        guard testCountdown == nil else { return }
+        testCountdown = 3
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            MainActor.assumeIsolated {
+                guard let self, let n = self.testCountdown else { timer.invalidate(); return }
+                if n > 1 { self.testCountdown = n - 1; return }
+                timer.invalidate()
+                self.testCountdown = nil
+                Actions.runMacro(steps)
+            }
+        }
+    }
+
     func showAbout() {
         let credits = NSAttributedString(
-            string: "Per-app layouts and colours for the Work Louder Creator Micro.\nAn independent project, not affiliated with Work Louder.",
+            string: "Per-app layouts and colors for the Work Louder Creator Micro.\nAn independent project, not affiliated with Work Louder.",
             attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
@@ -375,7 +395,7 @@ final class AppState: ObservableObject {
         DispatchQueue.main.async { [weak self] in self?.editorWindow?.makeFirstResponder(nil) }
     }
 
-    /// Call after the editor changes the config: saves it and refreshes the pad's colours.
+    /// Call after the editor changes the config: saves it and refreshes the pad's colors.
     func configEdited() {
         config.save()
         if let p = pinned, !config.profiles.contains(where: { $0.name == p }) { pinned = nil }
@@ -406,13 +426,21 @@ final class AppState: ObservableObject {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.json]
         guard panel.runModal() == .OK, let url = panel.url, let data = try? Data(contentsOf: url) else { return }
-        let dec = JSONDecoder()
-        let incoming: [Profile]
-        if let f = try? dec.decode(LayoutFile.self, from: data) { incoming = f.profiles }
-        else if let c = try? dec.decode(Config.self, from: data) { incoming = c.profiles }
-        else if let p = try? dec.decode(Profile.self, from: data) { incoming = [p] }
-        else { message = "\(url.lastPathComponent) isn't a PadPal layout file."; return }
+        guard var incoming = readLayouts(data) else { message = "\(url.lastPathComponent) isn't a PadPal layout file."; return }
         guard !incoming.isEmpty else { message = "\(url.lastPathComponent) has no layouts in it."; return }
+
+        // Shell commands, things to open and macros can do real damage, so show them before taking them in.
+        let risks = incoming.flatMap(\.riskLines)
+        var left = 0
+        if !risks.isEmpty {
+            switch Self.confirmRisky(risks, file: url.lastPathComponent) {
+            case .alertFirstButtonReturn:
+                incoming = incoming.map(\.withoutRisks)
+                left = risks.count
+            case .alertSecondButtonReturn: break
+            default: return
+            }
+        }
 
         var claimed = Set(config.profiles.flatMap { $0.apps ?? [] })
         var last = ""
@@ -430,6 +458,30 @@ final class AppState: ObservableObject {
         editorProfile = last
         configEdited()
         message = "Imported \(incoming.count) layout\(incoming.count == 1 ? "" : "s") from \(url.lastPathComponent)."
+            + (left > 0 ? " Left out \(left) action\(left == 1 ? "" : "s")." : "")
+    }
+
+    /// Lists the risky actions in a file being imported. First button: import without them. Second: import all.
+    private static func confirmRisky(_ risks: [String], file: String) -> NSApplication.ModalResponse {
+        let alert = NSAlert()
+        alert.alertStyle = .critical
+        alert.messageText = "\(file) contains \(risks.count) action\(risks.count == 1 ? "" : "s") that can run things on your Mac"
+        alert.informativeText = "Shell commands, things to open, and macros run with your account's full access as soon as the key is pressed. Read each one below. Import them only if you trust where this file came from and understand what they do."
+        let text = NSTextView(frame: NSRect(x: 0, y: 0, width: 460, height: 180))
+        text.string = risks.joined(separator: "\n\n")
+        text.isEditable = false
+        text.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        text.textContainerInset = NSSize(width: 6, height: 6)
+        text.autoresizingMask = [.width]
+        let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 460, height: 180))
+        scroll.documentView = text
+        scroll.hasVerticalScroller = true
+        scroll.borderType = .bezelBorder
+        alert.accessoryView = scroll
+        alert.addButton(withTitle: "Import Without These")
+        alert.addButton(withTitle: "Import Everything")
+        alert.addButton(withTitle: "Cancel")
+        return alert.runModal()
     }
 
     func openConfig() { NSWorkspace.shared.open(Config.file) }
@@ -450,7 +502,7 @@ struct LayoutFile: Codable {
     var profiles: [Profile]
 }
 
-/// The pad's own lighting, kept on disk while the app is showing its colours, so an unclean exit can't lose it.
+/// The pad's own lighting, kept on disk while the app is showing its colors, so an unclean exit can't lose it.
 struct SavedLights: Codable {
     var keys: Light
     var glow: Light

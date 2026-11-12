@@ -64,8 +64,29 @@ enum Actions {
         }
     }
 
+    /// Macros run here one after another, so a second press queues behind the first instead of interleaving.
+    private static let macroQueue = DispatchQueue(label: "padpal.macro")
+    /// Pause between macro steps, so the front app can keep up.
+    private static let stepGap = 0.04
+
+    static func runMacro(_ steps: [Step]) {
+        macroQueue.async {
+            for step in steps {
+                if let ms = step.wait { Thread.sleep(forTimeInterval: Double(min(max(ms, 0), 10_000)) / 1000); continue }
+                if let keys = step.keys { pressKeys(keys) }
+                else if let text = step.text { type(text) }
+                else if let media = step.media { mediaKey(media) }
+                else if let target = step.open { open(target) }
+                else if let cmd = step.shell { run("/bin/zsh", ["-lc", cmd]) }
+                else if let lines = step.scroll { scroll(lines) }
+                Thread.sleep(forTimeInterval: stepGap)
+            }
+        }
+    }
+
     static func perform(_ b: Binding) {
-        if let keys = b.keys { pressKeys(keys) }
+        if let steps = b.steps { runMacro(steps) }
+        else if let keys = b.keys { pressKeys(keys) }
         else if let media = b.media { mediaKey(media) }
         else if let target = b.open { open(target) }
         else if let cmd = b.shell { run("/bin/zsh", ["-lc", cmd]) }
@@ -85,12 +106,21 @@ enum Actions {
 
     static func type(_ text: String) {
         let src = CGEventSource(stateID: .combinedSessionState)
-        let chars = Array(text.utf16)
-        for down in [true, false] {
-            let e = CGEvent(keyboardEventSource: src, virtualKey: 0, keyDown: down)
-            e?.flags = []
-            e?.keyboardSetUnicodeString(stringLength: chars.count, unicodeString: chars)
-            e?.post(tap: .cghidEventTap)
+        // One key event carries about 20 UTF-16 units at most, so longer text goes out in pieces.
+        var pieces: [[UInt16]] = [[]]
+        for ch in text {
+            let units = Array(String(ch).utf16)
+            if pieces[pieces.count - 1].count + units.count > 20 { pieces.append([]) }
+            pieces[pieces.count - 1] += units
+        }
+        for chars in pieces where !chars.isEmpty {
+            for down in [true, false] {
+                let e = CGEvent(keyboardEventSource: src, virtualKey: 0, keyDown: down)
+                e?.flags = []
+                e?.keyboardSetUnicodeString(stringLength: chars.count, unicodeString: chars)
+                e?.post(tap: .cghidEventTap)
+            }
+            if pieces.count > 1 { usleep(4000) }
         }
     }
 

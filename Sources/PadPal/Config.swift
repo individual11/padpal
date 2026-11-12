@@ -10,6 +10,18 @@ struct Binding: Codable, Equatable {
     var text: String?      // text to type
     var scroll: Int?       // lines; positive scrolls up
     var profile: String?   // "next", "auto" or a profile name
+    var steps: [Step]?     // a macro: several actions run in order
+}
+
+/// One step of a macro. Exactly one field should be set.
+struct Step: Codable, Equatable {
+    var keys: String?
+    var text: String?
+    var wait: Int?         // pause, in milliseconds
+    var media: String?
+    var open: String?
+    var shell: String?
+    var scroll: Int?
 }
 
 typealias PadBinding = Binding
@@ -17,8 +29,8 @@ typealias PadBinding = Binding
 struct Profile: Codable, Equatable {
     var name: String
     var apps: [String]?    // bundle identifiers that activate this profile
-    var hue: UInt8?        // key colour, 0-255 around the colour wheel
-    var sat: UInt8?        // 0 = white, 255 = full colour
+    var hue: UInt8?        // key color, 0-255 around the color wheel
+    var sat: UInt8?        // 0 = white, 255 = full color
     var bindings: [String: Binding]
 }
 
@@ -27,7 +39,7 @@ struct Config: Codable, Equatable {
     var layer: Int
     /// The first profile is the fallback: inputs a profile leaves out use its binding.
     var profiles: [Profile]
-    /// How the outer rim changes to the app colour on an app switch: off, instant, fade, rotate or sweep.
+    /// How the outer rim changes to the app color on an app switch: off, instant, fade, rotate or sweep.
     var rim: String?
     /// Runs the sweep the other way round the rim.
     var sweepReverse: Bool?
@@ -116,4 +128,56 @@ struct Config: Codable, Equatable {
             "knob.cw": Binding(label: "Scroll up", scroll: 3),
         ]),
     ])
+}
+
+// MARK: - Checking layouts that came from someone else
+
+extension Step {
+    /// The step in full, with nothing shortened, for review before an import.
+    var fullText: String {
+        if let c = shell { return "run shell command: \(c)" }
+        if let o = open { return "open \(o)" }
+        if let t = text { return "type “\(t)”" }
+        if let k = keys { return "press \(k)" }
+        if let w = wait { return "wait \(w) ms" }
+        if let m = media { return "media key \(m)" }
+        if let n = scroll { return "scroll \(n)" }
+        return "nothing"
+    }
+}
+
+extension Binding {
+    /// Describes the action if it can run a program, open something, or drive other apps with a
+    /// sequence of keys and text. Nil for single shortcuts, media keys, scrolling and the like.
+    var riskText: String? {
+        if let steps, !steps.isEmpty { return "Macro: " + steps.map(\.fullText).joined(separator: ", then ") }
+        if let c = shell { return "Runs shell command: \(c)" }
+        if let o = open { return "Opens: \(o)" }
+        return nil
+    }
+}
+
+extension Profile {
+    /// Every action in this layout that deserves a look before importing, as lines of text.
+    var riskLines: [String] {
+        bindings.keys.sorted().compactMap { slot in
+            bindings[slot]?.riskText.map { "\(name) › \(bindings[slot]?.label.isEmpty == false ? bindings[slot]!.label : slot) (\(slot))\n    \($0)" }
+        }
+    }
+
+    /// The layout with those actions removed.
+    var withoutRisks: Profile {
+        var p = self
+        p.bindings = bindings.filter { $0.value.riskText == nil }
+        return p
+    }
+}
+
+/// Reads layouts from an exported file, a whole config, or a single layout.
+func readLayouts(_ data: Data) -> [Profile]? {
+    let dec = JSONDecoder()
+    if let f = try? dec.decode(LayoutFile.self, from: data) { return f.profiles }
+    if let c = try? dec.decode(Config.self, from: data) { return c.profiles }
+    if let p = try? dec.decode(Profile.self, from: data) { return [p] }
+    return nil
 }
