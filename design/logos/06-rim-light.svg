@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B26BFF"/>
+      <stop offset="1" stop-color="#FF8A3D"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="181" fill="#121018"/>
+  <!-- rim of light -->
+  <rect x="176" y="176" width="672" height="672" rx="136" fill="none" stroke="url(#ring)" stroke-width="48"/>
+  <!-- the pad reduced to 2x2: roller, knob, two keys -->
+  <rect x="302" y="357" width="190" height="80" rx="40" fill="#C9CCD6"/>
+  <circle cx="627" cy="397" r="95" fill="#FFFFFF"/>
+  <rect x="302" y="532" width="190" height="190" rx="46" fill="#5E5678"/>
+  <rect x="532" y="532" width="190" height="190" rx="46" fill="#5E5678"/>
+</svg>

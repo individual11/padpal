@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect x="100" y="100" width="824" height="824" rx="181" fill="#FF7A2F"/>
+  <!-- 2x2 key cluster -->
+  <g fill="#241C2E">
+    <rect x="240" y="240" width="250" height="250" rx="62"/>
+    <rect x="240" y="534" width="250" height="250" rx="62"/>
+    <rect x="534" y="534" width="250" height="250" rx="62"/>
+  </g>
+  <!-- lit key with halo -->
+  <rect x="512" y="218" width="294" height="294" rx="84" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="534" y="240" width="250" height="250" rx="62" fill="#FFF6E8"/>
+</svg>

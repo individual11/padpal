@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect x="100" y="100" width="824" height="824" rx="181" fill="#6D3DF2"/>
+  <!-- letter M on a 5x5 key grid -->
+  <g fill="#FFFFFF">
+    <rect x="198" y="198" width="108" height="108" rx="26"/>
+    <rect x="198" y="328" width="108" height="108" rx="26"/>
+    <rect x="198" y="458" width="108" height="108" rx="26"/>
+    <rect x="198" y="588" width="108" height="108" rx="26"/>
+    <rect x="198" y="718" width="108" height="108" rx="26"/>
+    <rect x="718" y="198" width="108" height="108" rx="26"/>
+    <rect x="718" y="328" width="108" height="108" rx="26"/>
+    <rect x="718" y="458" width="108" height="108" rx="26"/>
+    <rect x="718" y="588" width="108" height="108" rx="26"/>
+    <rect x="718" y="718" width="108" height="108" rx="26"/>
+    <rect x="328" y="328" width="108" height="108" rx="26"/>
+    <rect x="588" y="328" width="108" height="108" rx="26"/>
+  </g>
+  <!-- lit key -->
+  <rect x="458" y="458" width="108" height="108" rx="26" fill="#FFA033"/>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#FF8A3D"/>
+    </linearGradient>
+  </defs>
+  <!-- glowing rim = icon tile -->
+  <rect x="100" y="100" width="824" height="824" rx="181" fill="url(#rim)"/>
+  <!-- face plate -->
+  <rect x="156" y="156" width="712" height="712" rx="132" fill="#141218"/>
+  <!-- roller (top-left) and knob (top-right) -->
+  <rect x="206" y="240" width="132" height="64" rx="32" fill="#C9CCD6"/>
+  <circle cx="752" cy="272" r="66" fill="#FFFFFF"/>
+  <!-- 12 keys -->
+  <g fill="#5E5678">
+    <rect x="366" y="206" width="132" height="132" rx="30"/>
+    <rect x="526" y="206" width="132" height="132" rx="30"/>
+    <rect x="206" y="366" width="132" height="132" rx="30"/>
+    <rect x="366" y="366" width="132" height="132" rx="30"/>
+    <rect x="526" y="366" width="132" height="132" rx="30"/>
+    <rect x="686" y="366" width="132" height="132" rx="30"/>
+    <rect x="206" y="526" width="132" height="132" rx="30"/>
+    <rect x="366" y="526" width="132" height="132" rx="30"/>
+    <rect x="526" y="526" width="132" height="132" rx="30"/>
+    <rect x="686" y="526" width="132" height="132" rx="30"/>
+    <rect x="366" y="686" width="132" height="132" rx="30"/>
+    <rect x="526" y="686" width="132" height="132" rx="30"/>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect x="100" y="100" width="824" height="824" rx="181" fill="#F3ECDD"/>
+  <!-- dial track and level -->
+  <g fill="none" stroke-width="68" stroke-linecap="round">
+    <path d="M321 703 A270 270 0 1 1 703 703" stroke="#D9CDB4"/>
+    <path d="M321 703 A270 270 0 1 1 746 377" stroke="#FF7A2F"/>
+  </g>
+  <!-- knob with pointer -->
+  <circle cx="512" cy="512" r="176" fill="#1F1B2D"/>
+  <path d="M569 479 L630 444" fill="none" stroke="#FFFFFF" stroke-width="46" stroke-linecap="round"/>
+</svg>

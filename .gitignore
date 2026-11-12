@@ -1,0 +1,13 @@
+# Build output
+.build/
+PadPal.app/
+
+# Backups of one particular pad's keymap
+pad-backup-*.json
+
+# macOS
+.DS_Store
+
+# Logo working files
+design/logos/previews/
+design/logos/options.png
