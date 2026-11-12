@@ -2,7 +2,7 @@
 
 # PadPal
 
-A macOS menu-bar app for the Work Louder Creator Micro macro pad. It gives the pad a different layout for every app, lights it in that app's color, and lets you edit everything in a visual editor. It works with the firmware the pad ships with: nothing is flashed.
+A macOS menu-bar app for the [Work Louder](https://www.worklouder.cc) [Creator Micro](https://drop.com/buy/work-louder-creator-micro) macro pad. It gives the pad a different layout for every app, lights it in that app's color, and lets you edit everything in a visual editor. It works with the firmware the pad ships with: nothing is flashed.
 
 <p>
   <img src="docs/pad.jpg" width="400" alt="A Creator Micro with its rim lit orange, the color of the Claude layout">
@@ -21,7 +21,7 @@ A macOS menu-bar app for the Work Louder Creator Micro macro pad. It gives the p
 
 ## What you need
 
-- A Work Louder **Creator Micro** (the original, sold as "Micro Pad", USB ID `574C:E6E3`) running its stock VIA-enabled firmware. The Creator Micro 2 is different hardware and has not been tried.
+- A Work Louder **[Creator Micro](https://drop.com/buy/work-louder-creator-micro)** (the original; it shows up over USB as "Micro Pad", ID `574C:E6E3`) running its stock VIA-enabled firmware. The [Creator Micro 2](https://www.worklouder.cc/creator-micro-2) is different hardware and has not been tried.
 - macOS 13 or later.
 - The Swift toolchain. The Xcode Command Line Tools are enough (`xcode-select --install`); full Xcode is not needed.
 
