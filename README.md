@@ -127,7 +127,7 @@ PadPal.app/Contents/MacOS/PadPal dump
 | `backup [file]` | Save the pad's keymap, encoders and macros |
 | `setup [layer]` | Back up, then write PadPal's codes to a layer (counted from 0, as in the config file) |
 | `restore <file>` | Put a backup's keys and encoders back |
-| `layers` | List the pad's layers and what PadPal could bring in from each |
+| `layers [backup]` | List the layers of the pad, or of a saved backup, and what PadPal could bring in from each |
 | `edit` | Open the layout editor in the running app |
 | `inspect <file>` | List a layout file's shell commands, things to open and macros, without importing it |
 | `status working\|waiting\|done\|clear` | Show a status color on the rim |

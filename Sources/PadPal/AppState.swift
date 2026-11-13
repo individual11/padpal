@@ -18,6 +18,9 @@ final class AppState: ObservableObject {
     /// Presses of the pad's layer key that lead back, when that is certain.
     @Published var offLayerPresses: Int?
     private var snapshot: PadBackup?
+    /// Whether the pad's layers have been read since it was plugged in. Nothing is written to the pad until they have.
+    enum PadRead { case pending, ok, failed }
+    @Published var padRead = PadRead.pending
     @Published var inputAccess = false
     @Published var accessibility = false
     @Published var pinned: String?            // profile name pinned by hand; nil = follow the front app
@@ -139,7 +142,9 @@ final class AppState: ObservableObject {
 
     private func connectionChanged(_ up: Bool) {
         connected = up
-        guard up else { installed = false; layers = []; snapshot = nil; setOffLayer(false); return }
+        guard up else { installed = false; layers = []; snapshot = nil; padRead = .pending; setOffLayer(false); return }
+        padRead = .pending
+        let layer = config.layer
         io.async { [pad, rim] in
             var keys = pad.light(.keys), glow = pad.light(.glow)
             if let saved = SavedLights.load() {
@@ -151,21 +156,31 @@ final class AppState: ObservableObject {
                 if let b = pad.brightness(.glow), b > 0 { rim.full = Int(b); rim.level = Int(b) }
                 SavedLights(keys: k, glow: g, brightness: rim.full).save()
             }
-            let snap = pad.backup()
+            // One failed request spoils a whole reading, so try twice before giving up.
+            let snap = pad.backup() ?? pad.backup()
+            let fallback = snap == nil ? pad.isInstalled(layer: layer) : false
             DispatchQueue.main.async {
                 self.originalKeys = keys
                 self.originalGlow = glow
                 self.setOffLayer(false)
-                self.take(snap)
+                self.take(snap, installedIfUnread: fallback)
                 self.applyLight()
             }
         }
     }
 
     /// Takes in a fresh reading of the pad's layers and works out whether PadPal's layer is set up.
-    private func take(_ snap: PadBackup?) {
+    /// A failed reading (nil) is not proof that setup is needed: the last reading is kept, and
+    /// `installedIfUnread` says whether PadPal's layer is known to be set up some other way.
+    private func take(_ snap: PadBackup?, installedIfUnread: Bool = false) {
+        guard let snap else {
+            padRead = .failed
+            if installedIfUnread { installed = true }
+            return
+        }
+        padRead = .ok
         snapshot = snap
-        layers = snap?.layers ?? []
+        layers = snap.layers
         func holds(_ n: Int) -> Bool { layers.indices.contains(n) && layers[n].isPadPal }
         // The config names a layer without PadPal's keys, but another layer has them: use that one.
         if !holds(config.layer), let other = layers.firstIndex(where: \.isPadPal) {
@@ -198,6 +213,7 @@ final class AppState: ObservableObject {
         guard offLayer != off else { return }
         offLayer = off
         if !off { offLayerPresses = nil }
+        if off { status = nil }     // the pad's own lighting wins over a status color
         applyLight()
     }
 
@@ -310,7 +326,7 @@ final class AppState: ObservableObject {
 
     /// Shows a Claude status on the rim: working, waiting, done or clear.
     func showStatus(_ state: String) {
-        guard connected else { return }
+        guard connected, !offLayer else { return }
         let want: Light?
         switch state {
         case "working": want = Light(effect: 3, hue: 11, sat: 255)    // breathing orange
@@ -563,8 +579,13 @@ final class AppState: ObservableObject {
 
     /// Writes PadPal's keys to a layer after a backup. Asks first when the layer has keys on it.
     func setUp(layer n: Int) {
+        // Without a reading of the pad there is no telling what this would overwrite.
+        guard padRead == .ok, layers.indices.contains(n) else {
+            message = padRead == .pending ? "Still reading the pad. Try again in a moment." : "Couldn’t read the pad’s layers. Click Reload and try again."
+            return
+        }
         var keep = false
-        if layers.indices.contains(n), layers[n].inUse > 0 {
+        if layers[n].inUse > 0 {
             let count = layers[n].inUse
             let alert = NSAlert()
             alert.messageText = "Set up PadPal on layer \(n + 1)?"
@@ -590,7 +611,7 @@ final class AppState: ObservableObject {
                 self.config.layer = n
                 self.config.save()
                 self.setOffLayer(false)
-                self.take(after)
+                self.take(after, installedIfUnread: true)
                 var text = result.text
                 if let old { text += " Layer \(old + 1) still has PadPal’s keys." }
                 if keep, let before = result.before, let note = self.addLayout(from: before, layer: n) { text += " " + note }

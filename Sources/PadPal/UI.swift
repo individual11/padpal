@@ -12,7 +12,10 @@ struct PadView: View {
         VStack(alignment: .leading, spacing: 12) {
             header
             if !state.connected { notFound }
-            if state.connected && !state.installed { chooseLayer }
+            if state.connected && !state.installed && state.padRead == .ok { chooseLayer }
+            if state.connected && state.padRead == .failed {
+                note("Couldn't read the pad's layers.", "Try again") { state.reload() }
+            }
             if state.connected && state.installed && state.offLayer { offLayer }
             if !state.inputAccess {
                 note("Allow PadPal under Input Monitoring to read the pad, then reopen the app.", "Open Settings") {
@@ -156,7 +159,7 @@ struct PadView: View {
 
     private var settings: some View {
         VStack(spacing: 6) {
-            if state.connected && state.installed {
+            if state.connected && state.installed && state.padRead == .ok {
                 HStack {
                     Text("Pad layer").font(.caption)
                     Spacer()

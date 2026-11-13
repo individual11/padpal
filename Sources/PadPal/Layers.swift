@@ -88,12 +88,14 @@ enum PadTranslate {
         return out
     }
 
-    /// A stored macro as PadPal steps. Text is typed, key taps become shortcuts, delays become waits.
-    static func steps(_ macro: [UInt8]) -> [Step] {
-        var steps: [Step] = [], held = 0, text = "", i = 0
+    /// A stored macro as PadPal steps. Text is typed, key taps become shortcuts or media keys, delays
+    /// become waits. `dropped` counts key presses that have no PadPal equivalent.
+    static func steps(_ macro: [UInt8]) -> (steps: [Step], dropped: Int) {
+        var steps: [Step] = [], held = 0, text = "", i = 0, dropped = 0
         func flush() { if !text.isEmpty { steps.append(Step(text: text)); text = "" } }
         func press(_ usage: Int) {
-            guard let name = keyNames[usage] else { return }
+            if let m = media[UInt16(usage)] { flush(); steps.append(Step(media: m.name)); return }
+            guard let name = keyNames[usage] else { dropped += 1; return }
             flush()
             steps.append(Step(keys: (modifierNames(held) + [name]).joined(separator: "+")))
         }
@@ -117,10 +119,14 @@ enum PadTranslate {
                 // A delay: digits up to a "|".
                 var ms = 0
                 i += 2
-                while i < macro.count, macro[i] != 0x7C { ms = ms * 10 + Int(macro[i]) - 0x30; i += 1 }
+                while i < macro.count, macro[i] != 0x7C {
+                    // Stop adding digits once past the longest wait PadPal allows, so a huge number can't overflow.
+                    if (0x30...0x39).contains(macro[i]), ms <= 10_000 { ms = ms * 10 + Int(macro[i]) - 0x30 }
+                    i += 1
+                }
                 i += 1
                 flush()
-                if ms > 0 { steps.append(Step(wait: min(max(ms, 0), 10_000))) }
+                if ms > 0 { steps.append(Step(wait: min(ms, 10_000))) }
                 continue
             }
             guard i + 2 < macro.count else { break }
@@ -135,7 +141,7 @@ enum PadTranslate {
             i += 3
         }
         flush()
-        return steps
+        return (steps, dropped)
     }
 
     enum Result { case empty, skipped, action(Binding) }
@@ -153,9 +159,14 @@ enum PadTranslate {
             return .action(Binding(label: label(forKeys: keys), keys: keys))
         }
         if let n = macroIndex(code, proto: proto) {
-            let s = n < macros.count ? steps(macros[n]) : []
-            if s.isEmpty { return .empty }
+            let made: (steps: [Step], dropped: Int) = n < macros.count ? steps(macros[n]) : ([], 0)
+            let s = made.steps
+            // A macro made only of keys PadPal can't press is something lost, not an empty key.
+            if s.isEmpty { return made.dropped > 0 ? .skipped : .empty }
             if s.count == 1, let k = s[0].keys { return .action(Binding(label: label(forKeys: k), keys: k)) }
+            if s.count == 1, let name = s[0].media, let m = media.values.first(where: { $0.name == name }) {
+                return .action(Binding(label: m.label, media: name))
+            }
             if s.count == 1, let t = s[0].text { return .action(Binding(label: "Type “\(t.prefix(12))”", text: t)) }
             return .action(Binding(label: "Macro \(n + 1)", steps: s))
         }
