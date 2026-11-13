@@ -175,6 +175,17 @@ struct EditorView: View {
                 Spacer()
                 Menu("More") {
                     Button("Import layouts…") { state.importLayouts() }
+                    Menu("Import from pad layer") {
+                        ForEach(Array(state.layers.enumerated()), id: \.offset) { i, layer in
+                            let n = layer.isPadPal ? 0 : state.importable(i)
+                            let what = layer.isPadPal || layer.inUse == 0 ? layer.summary
+                                : (n == 0 ? "nothing PadPal can use" : "\(n) of \(layer.inUse) key\(layer.inUse == 1 ? "" : "s")")
+                            Button("Layer \(i + 1) · \(what)") { state.importPadLayer(i) }
+                                .disabled(n == 0)
+                        }
+                    }
+                    .disabled(state.layers.isEmpty)
+                    Button("Import from pad backup…") { state.importFromBackup() }
                     Button("Export “\(profile.name)”…") { state.exportLayouts([profile], suggestedName: profile.name) }
                     Button("Export all layouts…") { state.exportLayouts(state.config.profiles, suggestedName: "PadPal layouts") }
                     Divider()

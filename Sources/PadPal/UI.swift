@@ -12,9 +12,8 @@ struct PadView: View {
         VStack(alignment: .leading, spacing: 12) {
             header
             if !state.connected { notFound }
-            if state.connected && !state.installed {
-                note("Pad layer \(state.config.layer) doesn't carry the app's codes yet.", "Set up pad") { state.installOnPad() }
-            }
+            if state.connected && !state.installed { chooseLayer }
+            if state.connected && state.installed && state.offLayer { offLayer }
             if !state.inputAccess {
                 note("Allow PadPal under Input Monitoring to read the pad, then reopen the app.", "Open Settings") {
                     PadListener.requestAccess()
@@ -62,6 +61,8 @@ struct PadView: View {
         .animation(.easeInOut(duration: 0.25), value: state.reloadNote)
         .animation(.easeInOut(duration: 0.25), value: state.message)
         .animation(.easeInOut(duration: 0.25), value: state.connected)
+        .animation(.easeInOut(duration: 0.25), value: state.installed)
+        .animation(.easeInOut(duration: 0.25), value: state.offLayer)
         .onAppear { state.refreshPermissions() }
     }
 
@@ -80,9 +81,65 @@ struct PadView: View {
         .background(RoundedRectangle(cornerRadius: 9).fill(Color.secondary.opacity(0.1)))
     }
 
+    /// Layer names for the menus: "Layer 1 · 12 keys in use", "Layer 2 · PadPal ✓", "Layer 3 · empty".
+    private var layerItems: some View {
+        ForEach(0..<max(state.layers.count, 4), id: \.self) { i in
+            if i < state.layers.count {
+                Text("Layer \(i + 1) · \(state.layers[i].summary)\(state.layers[i].isPadPal ? " ✓" : "")").tag(i)
+            } else {
+                Text("Layer \(i + 1)").tag(i)
+            }
+        }
+    }
+
+    /// Shown when none of the pad's layers has PadPal's keys yet.
+    private var chooseLayer: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Choose a layer for PadPal").font(.callout.weight(.semibold))
+                Text("PadPal takes over one of the pad's four layers. The other three keep working as they do now.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            HStack {
+                Picker("", selection: SwiftUI.Binding<Int>(
+                    get: { state.config.layer }, set: { state.pickLayer($0) }
+                )) { layerItems }
+                .labelsHidden().frame(maxWidth: 220)
+                Spacer()
+                Button("Set up pad") { state.setUp(layer: state.config.layer) }
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color.secondary.opacity(0.1)))
+    }
+
+    /// Shown after a key arrives from the pad that PadPal's layer can't send.
+    private var offLayer: some View {
+        let layer = state.config.layer + 1
+        let how: String
+        switch state.offLayerPresses {
+        case 1?: how = "Press the layer key on the pad once"
+        case 2?: how = "Press the layer key on the pad twice"
+        case let n?: how = "Press the layer key on the pad \(n) times"
+        case nil: how = "Press the layer key on the pad"
+        }
+        return HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "square.stack.3d.up").font(.title3).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Pad seems to be on another layer").font(.callout.weight(.semibold))
+                Text("\(how) to come back to layer \(layer).")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color.secondary.opacity(0.1)))
+    }
+
     private var header: some View {
         HStack {
-            Circle().fill(state.connected ? Color.green : Color.gray).frame(width: 8, height: 8)
+            Circle().fill(!state.connected ? Color.gray : (state.offLayer ? Color.orange : Color.green)).frame(width: 8, height: 8)
             Text(state.profile.name).font(.headline)
             Spacer()
             Picker("", selection: SwiftUI.Binding<String>(
@@ -99,6 +156,16 @@ struct PadView: View {
 
     private var settings: some View {
         VStack(spacing: 6) {
+            if state.connected && state.installed {
+                HStack {
+                    Text("Pad layer").font(.caption)
+                    Spacer()
+                    Picker("", selection: SwiftUI.Binding<Int>(
+                        get: { state.config.layer }, set: { state.chooseLayer($0) }
+                    )) { layerItems }
+                    .labelsHidden().frame(width: 190).controlSize(.small)
+                }
+            }
             HStack {
                 Text("Rim on app switch").font(.caption)
                 Spacer()

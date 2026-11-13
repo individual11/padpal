@@ -8,7 +8,7 @@ enum Main {
         exit(runCommand(cmd, Array(args.dropFirst())))
     }
 
-    /// Command-line tools: status, edit, inspect, backup, setup, restore, dump.
+    /// Command-line tools: status, edit, inspect, backup, setup, restore, layers, dump.
     static func runCommand(_ cmd: String, _ args: [String]) -> Int32 {
         if cmd == "status" {
             DistributedNotificationCenter.default().postNotificationName(
@@ -29,8 +29,8 @@ enum Main {
             print(risks.isEmpty ? "No shell commands, things to open, or macros." : "\(risks.count) action\(risks.count == 1 ? "" : "s") to read before importing:\n\n" + risks.joined(separator: "\n\n"))
             return 0
         }
-        guard ["backup", "setup", "restore", "dump"].contains(cmd) else {
-            print("usage: PadPal [edit | inspect <file> | status working|waiting|done|clear | backup [file] | setup [layer] | restore <file> | dump]")
+        guard ["backup", "setup", "restore", "layers", "dump"].contains(cmd) else {
+            print("usage: PadPal [edit | inspect <file> | status working|waiting|done|clear | backup [file] | setup [layer] | restore <file> | layers | dump]")
             return 2
         }
         let pad = PadLink()
@@ -43,10 +43,27 @@ enum Main {
             print("Saved \(url.path)")
         case "setup":
             let layer = args.first.flatMap(Int.init) ?? Config.load().0.layer
-            print(PadSetup.install(pad, layer: layer))
+            print(PadSetup.install(pad, layer: layer).text)
         case "restore":
             guard let path = args.first else { print("restore needs a backup file"); return 2 }
             print(PadSetup.restore(pad, from: URL(fileURLWithPath: path)))
+        case "layers":
+            guard let b = pad.backup() else { print("Read failed."); return 1 }
+            for (i, layer) in b.layers.enumerated() {
+                print("Layer \(i + 1) · \(layer.summary)")
+                guard !layer.isPadPal, let made = PadTranslate.layout(from: b, layer: i) else { continue }
+                for slot in PadInput.all {
+                    guard let x = made.profile.bindings[slot] else { continue }
+                    var what = ""
+                    if let steps = x.steps { what = "macro: " + steps.map(\.fullText).joined(separator: ", then ") }
+                    else if let k = x.keys { what = k }
+                    else if let m = x.media { what = m }
+                    else if let t = x.text { what = "type “\(t)”" }
+                    else if let n = x.scroll { what = "scroll \(n)" }
+                    print("    \(slot.padding(toLength: 13, withPad: " ", startingAt: 0)) \(x.label)  [\(what)]")
+                }
+                if made.skipped > 0 { print("    \(made.skipped) key\(made.skipped == 1 ? "" : "s") can't be carried over") }
+            }
         default:
             guard let b = pad.backup() else { print("Read failed."); return 1 }
             for (i, layer) in b.keymap.enumerated() {

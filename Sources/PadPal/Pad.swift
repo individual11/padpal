@@ -230,6 +230,8 @@ final class PadListener: @unchecked Sendable {
     private var mgr: IOHIDManager?
     private let queue = DispatchQueue(label: "padpal.keys")
     var onInput: ((String) -> Void)?
+    /// A key press from the pad that is not one of the app's codes, so it came from another layer.
+    var onForeign: ((PadUsage) -> Void)?
 
     static var accessGranted: Bool { IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted }
     static func requestAccess() { _ = IOHIDRequestAccess(kIOHIDRequestTypeListenEvent) }
@@ -246,18 +248,23 @@ final class PadListener: @unchecked Sendable {
     func start() -> Bool {
         guard mgr == nil else { return true }
         let m = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-        let match: [String: Any] = [
-            kIOHIDVendorIDKey: PadLink.vendorID, kIOHIDProductIDKey: PadLink.productID,
-            kIOHIDDeviceUsagePageKey: 1, kIOHIDDeviceUsageKey: 6,
-        ]
-        IOHIDManagerSetDeviceMatching(m, match as CFDictionary)
+        // The pad's keyboard, and its media-key interface (only watched to notice presses from other layers).
+        let match: [[String: Any]] = [(1, 6), (0x0C, 1)].map { page, usage in
+            [kIOHIDVendorIDKey: PadLink.vendorID, kIOHIDProductIDKey: PadLink.productID,
+             kIOHIDDeviceUsagePageKey: page, kIOHIDDeviceUsageKey: usage]
+        }
+        IOHIDManagerSetDeviceMatchingMultiple(m, match as CFArray)
         let ctx = Unmanaged.passUnretained(self).toOpaque()
         IOHIDManagerRegisterInputValueCallback(m, { ctx, _, _, value in
             let me = Unmanaged<PadListener>.fromOpaque(ctx!).takeUnretainedValue()
             let el = IOHIDValueGetElement(value)
-            guard IOHIDElementGetUsagePage(el) == 7, IOHIDValueGetIntegerValue(value) != 0,
-                  let name = PadInput.byCode[Int(IOHIDElementGetUsage(el))] else { return }
-            me.onInput?(name)
+            let page = Int(IOHIDElementGetUsagePage(el)), usage = Int(IOHIDElementGetUsage(el))
+            guard IOHIDValueGetIntegerValue(value) != 0 else { return }
+            if page == 7, let name = PadInput.byCode[usage] { me.onInput?(name); return }
+            // Usages below 4 are "no key" and error codes, not presses.
+            if (page == 7 && (4...0xE7).contains(usage)) || (page == 0x0C && (1...0x3FF).contains(usage)) {
+                me.onForeign?(PadUsage(page: page, usage: usage))
+            }
         }, ctx)
         lastOpenResult = IOHIDManagerOpen(m, IOOptionBits(kIOHIDOptionsTypeNone))
         guard lastOpenResult == kIOReturnSuccess else { return false }
