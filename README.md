@@ -41,7 +41,7 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 
 1. **Allow Input Monitoring.** PadPal reads key presses from the pad (and only the pad). macOS asks the first time; switch PadPal on in System Settings → Privacy & Security → Input Monitoring.
 2. **Allow Accessibility.** PadPal sends shortcuts to other apps. macOS asks the first time a key needs it.
-3. **Set up the pad.** Click the grid icon in the menu bar. If it says the pad layer isn't set up, click **Set up pad**. This writes PadPal's key codes to one of the pad's four layers after saving a backup of the whole keymap. By default that is the second layer (`"layer": 1` in the config file, counting from 0); to use a different one, change that number and click **Set up pad** again.
+3. **Set up the pad.** Click the grid icon in the menu bar. If it says the pad layer isn't set up, click **Set up pad**. This writes PadPal's key codes to one of the pad's four layers after saving a backup of the whole keymap. By default that is the second layer (`"layer": 1` in the config file, counting from 0); to use a different one, change that number, click **Reload** in the menu, and click **Set up pad** again if prompted.
 4. **Switch the pad to that layer** with the pad's own layer key. On the other layers the pad behaves exactly as before.
 
 ## Using it
