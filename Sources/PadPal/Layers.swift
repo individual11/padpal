@@ -144,7 +144,7 @@ enum PadTranslate {
         return (steps, dropped)
     }
 
-    enum Result { case empty, skipped, action(Binding) }
+    enum Result: Equatable { case empty, skipped, action(Binding) }
 
     /// One pad key code as a PadPal action.
     static func binding(_ code: UInt16, proto: Int, macros: [[UInt8]]) -> Result {
