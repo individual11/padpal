@@ -41,16 +41,28 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 
 1. **Allow Input Monitoring.** PadPal reads key presses from the pad (and only the pad). macOS asks the first time; switch PadPal on in System Settings → Privacy & Security → Input Monitoring.
 2. **Allow Accessibility.** PadPal sends shortcuts to other apps. macOS asks the first time a key needs it.
-3. **Set up the pad.** Click the grid icon in the menu bar. If it says the pad layer isn't set up, click **Set up pad**. This writes PadPal's key codes to one of the pad's four layers after saving a backup of the whole keymap. By default that is the second layer (`"layer": 1` in the config file, counting from 0); to use a different one, change that number, click **Reload** in the menu, and click **Set up pad** again if prompted.
-4. **Switch the pad to that layer** with the pad's own layer key. On the other layers the pad behaves exactly as before.
+3. **Choose a layer.** Click the grid icon in the menu bar. PadPal takes over one of the pad's four layers; the other three keep working as they do now. Pick the layer (the menu shows how many keys each one has in use) and click **Set up pad**. This writes PadPal's key codes to that layer after saving a backup of the whole keymap. If the layer already has keys, PadPal asks first and offers to keep them as a layout.
+4. **Switch the pad to that layer** with the pad's own layer key.
+
+<p>
+  <img src="docs/choose-layer.png" width="340" alt="The PadPal panel on first run, asking which of the pad's layers to use">
+  <img src="docs/setup-confirm.png" width="290" alt="PadPal asking before it replaces a layer's keys, with the option to keep them as a layout">
+</p>
 
 ## Using it
 
 - **Menu-bar panel.** Shows the current layout on a picture of the pad; cells flash as you press keys. Choose a layout by hand or let it follow the front app.
 - **Edit layouts.** Opens the editor. Add a layout, give it a color, pick the apps it is active in, then click slots to assign actions. Changes apply as you make them. A slot left as "Same as Default" uses the Default layout's action.
 - **More → Import / Export.** Export one layout or all of them to a `.padpal.json` file. Importing adds layouts and never replaces yours: a clashing name gets a number, and an app you have already assigned stays where it is.
+- **Pad layer.** Moves PadPal to another of the pad's layers. The layer it leaves keeps PadPal's key codes, so it does nothing useful by itself afterward. To get its old keys back, restore the backup saved before that layer was first set up (see [Undoing it](#undoing-it)), then choose the layer you want again.
 - **Rim on app switch.** Off, Instant, Fade (through dark), Rotate (the new color chases round the rim) or Sweep (a direct blend from one color to the other).
 - **Hold for Default layout.** Command by default; pick another modifier or turn it off.
+
+### Other layers
+
+The pad cannot tell the computer which layer it is on, and the computer cannot switch it; only the pad's layer key can. PadPal notices when a key arrives that its own layer could not have sent. The panel then says the pad seems to be on another layer, and the pad goes back to its own lighting until you press a PadPal key again. A colored rim therefore means PadPal is live.
+
+To keep what another layer does, choose **More → Import from pad layer** in the editor. PadPal adds it as a layout named `layout-from-layer-1` (or 2, 3, 4), which does nothing until you assign it to apps or copy its keys elsewhere. Shortcuts, media keys and the pad's stored macros come across; layer keys, lighting controls and the pad's special keys do not. **Import from pad backup** does the same from a saved backup, including a layer that has since been overwritten.
 
 ### Importing layouts safely
 
@@ -118,8 +130,9 @@ PadPal.app/Contents/MacOS/PadPal dump
 | --- | --- |
 | `dump` | Print the pad's keymap and lighting |
 | `backup [file]` | Save the pad's keymap, encoders and macros |
-| `setup [layer]` | Back up, then write PadPal's codes to a layer |
+| `setup [layer]` | Back up, then write PadPal's codes to a layer (counted from 0, as in the config file) |
 | `restore <file>` | Put a backup's keys and encoders back |
+| `layers [backup]` | List the layers of the pad, or of a saved backup, and what PadPal could bring in from each |
 | `edit` | Open the layout editor in the running app |
 | `inspect <file>` | List a layout file's shell commands, things to open and macros, without importing it |
 | `status working\|waiting\|done\|clear` | Show a status color on the rim |

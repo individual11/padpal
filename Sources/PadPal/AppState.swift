@@ -11,6 +11,18 @@ final class AppState: ObservableObject {
     @Published var configError: String?
     @Published var connected = false
     @Published var installed = false
+    /// The pad's four layers as last read from it; empty until the pad has been read.
+    @Published var layers: [PadLayer] = []
+    /// A key arrived from the pad that isn't PadPal's, so the pad is probably on another layer.
+    @Published var offLayer = false
+    /// Presses of the pad's layer key that lead back, when that is certain.
+    @Published var offLayerPresses: Int?
+    private var snapshot: PadBackup?
+    /// Whether the pad's layers have been read since it was plugged in. Nothing is written to the pad until they have.
+    enum PadRead { case pending, ok, failed }
+    @Published var padRead = PadRead.pending
+    /// Bumped whenever the pad connects or disconnects, so a reading from an earlier connection is thrown away.
+    private var padGen = 0
     @Published var inputAccess = false
     @Published var accessibility = false
     @Published var pinned: String?            // profile name pinned by hand; nil = follow the front app
@@ -69,6 +81,9 @@ final class AppState: ObservableObject {
         listener.onInput = { [weak self] name in
             DispatchQueue.main.async { self?.handle(name) }
         }
+        listener.onForeign = { [weak self] usage in
+            DispatchQueue.main.async { self?.foreign(usage) }
+        }
 
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification,
                                                           object: nil, queue: .main) { [weak self] note in
@@ -119,6 +134,9 @@ final class AppState: ObservableObject {
         accessibility: \(accessibility)
         padConnected: \(connected)
         layerInstalled: \(installed)
+        padPalLayer: \(config.layer + 1)
+        layers: \(layers.map(\.summary).joined(separator: " | "))
+        onAnotherLayer: \(offLayer)
         executable: \(Bundle.main.executablePath ?? "?")
         """
         try? report.write(to: Config.dir.appendingPathComponent("state.txt"), atomically: true, encoding: .utf8)
@@ -126,7 +144,10 @@ final class AppState: ObservableObject {
 
     private func connectionChanged(_ up: Bool) {
         connected = up
-        guard up else { installed = false; return }
+        padGen += 1
+        let gen = padGen
+        guard up else { installed = false; layers = []; snapshot = nil; padRead = .pending; setOffLayer(false); return }
+        padRead = .pending
         let layer = config.layer
         io.async { [pad, rim] in
             var keys = pad.light(.keys), glow = pad.light(.glow)
@@ -139,19 +160,72 @@ final class AppState: ObservableObject {
                 if let b = pad.brightness(.glow), b > 0 { rim.full = Int(b); rim.level = Int(b) }
                 SavedLights(keys: k, glow: g, brightness: rim.full).save()
             }
-            let ok = pad.isInstalled(layer: layer)
+            // One failed request spoils a whole reading, so try twice before giving up.
+            let snap = pad.backup() ?? pad.backup()
+            let fallback = snap == nil ? pad.isInstalled(layer: layer) : false
             DispatchQueue.main.async {
+                guard gen == self.padGen else { return }
                 self.originalKeys = keys
                 self.originalGlow = glow
-                self.installed = ok
+                self.setOffLayer(false)
+                self.take(snap, installedIfUnread: fallback)
                 self.applyLight()
             }
         }
     }
 
+    /// Takes in a fresh reading of the pad's layers and works out whether PadPal's layer is set up.
+    /// A failed reading (nil) is not proof that setup is needed: the last reading is kept, and
+    /// `installedIfUnread` says whether PadPal's layer is known to be set up some other way.
+    private func take(_ snap: PadBackup?, installedIfUnread: Bool = false) {
+        guard let snap else {
+            padRead = .failed
+            if installedIfUnread { installed = true }
+            return
+        }
+        padRead = .ok
+        snapshot = snap
+        layers = snap.layers
+        func holds(_ n: Int) -> Bool { layers.indices.contains(n) && layers[n].isPadPal }
+        // The config names a layer without PadPal's keys, but another layer has them: use that one.
+        if !holds(config.layer), let other = layers.firstIndex(where: \.isPadPal) {
+            config.layer = other
+            config.save()
+            message = "Using layer \(other + 1), where PadPal is already set up."
+        }
+        installed = holds(config.layer)
+    }
+
+    // MARK: Other layers
+
+    /// A key press from the pad that PadPal's layer can't send.
+    private func foreign(_ usage: PadUsage) {
+        guard installed else { return }
+        var presses: Int?
+        if let snap = snapshot {
+            let macros = PadTranslate.splitMacros(snap.macros)
+            let from = layers.indices.filter {
+                !layers[$0].isPadPal && PadTranslate.usages(of: layers[$0], proto: snap.protocolVersion, macros: macros).contains(usage)
+            }
+            if from.count == 1 { presses = PadTranslate.presses(from: from[0], to: config.layer, layers: layers) }
+        }
+        offLayerPresses = presses
+        setOffLayer(true)
+    }
+
+    /// While the pad is on another layer it shows its own lighting, so a colored rim means PadPal is live.
+    private func setOffLayer(_ off: Bool) {
+        guard offLayer != off else { return }
+        offLayer = off
+        if !off { offLayerPresses = nil }
+        if off { status = nil }     // the pad's own lighting wins over a status color
+        applyLight()
+    }
+
     // MARK: Input
 
     private func handle(_ input: String) {
+        setOffLayer(false)
         flash = input
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             if self?.flash == input { self?.flash = nil }
@@ -188,7 +262,7 @@ final class AppState: ObservableObject {
     func applyLight() {
         guard connected, let original = originalKeys else { return }
         let p = profile
-        let want = p.hue.map { Light(effect: 1, hue: $0, sat: p.sat ?? 255) } ?? original
+        let want = offLayer ? original : (p.hue.map { Light(effect: 1, hue: $0, sat: p.sat ?? 255) } ?? original)
         io.async { [pad] in pad.setLight(.keys, want) }
         applyRim()
     }
@@ -198,7 +272,7 @@ final class AppState: ObservableObject {
         guard connected, status == nil, let original = originalGlow else { return }
         let style = config.rimStyle
         let p = profile
-        let target = style == "off" ? original : (p.hue.map { Light(effect: 1, hue: $0, sat: p.sat ?? 255) } ?? original)
+        let target = style == "off" || offLayer ? original : (p.hue.map { Light(effect: 1, hue: $0, sat: p.sat ?? 255) } ?? original)
         let gen = rimGen.next()
         io.async { [pad, rim, rimGen] in
             guard rimGen.value == gen, rim.shown != target else { return }
@@ -257,7 +331,7 @@ final class AppState: ObservableObject {
 
     /// Shows a Claude status on the rim: working, waiting, done or clear.
     func showStatus(_ state: String) {
-        guard connected else { return }
+        guard connected, !offLayer else { return }
         let want: Light?
         switch state {
         case "working": want = Light(effect: 3, hue: 11, sat: 255)    // breathing orange
@@ -486,13 +560,139 @@ final class AppState: ObservableObject {
 
     func openConfig() { NSWorkspace.shared.open(Config.file) }
 
-    func installOnPad() {
-        let layer = config.layer
-        io.async { [pad] in
-            let text = PadSetup.install(pad, layer: layer)
-            let ok = pad.isInstalled(layer: layer)
-            DispatchQueue.main.async { self.message = text; self.installed = ok }
+    // MARK: Choosing the pad layer
+
+    /// First run: remembers which layer to set up, without writing anything to the pad.
+    func pickLayer(_ n: Int) {
+        config.layer = n
+        config.save()
+    }
+
+    /// The layer menu in the panel: moves PadPal to another layer.
+    func chooseLayer(_ n: Int) {
+        guard layers.indices.contains(n), n != config.layer || !installed else { return }
+        if layers[n].isPadPal {
+            config.layer = n
+            config.save()
+            installed = true
+            setOffLayer(false)
+            message = "Using layer \(n + 1), where PadPal is already set up."
+            return
         }
+        setUp(layer: n)
+    }
+
+    /// Writes PadPal's keys to a layer after a backup. Asks first when the layer has keys on it.
+    func setUp(layer n: Int) {
+        // Without a reading of the pad there is no telling what this would overwrite.
+        guard padRead == .ok, layers.indices.contains(n) else {
+            message = padRead == .pending ? "Still reading the pad. Try again in a moment." : "Couldn’t read the pad’s layers. Click Reload and try again."
+            return
+        }
+        var keep = false
+        let gen = padGen
+        if layers[n].inUse > 0 {
+            let count = layers[n].inUse
+            let alert = NSAlert()
+            alert.messageText = "Set up PadPal on layer \(n + 1)?"
+            alert.informativeText = "This replaces the \(count) key\(count == 1 ? "" : "s") on layer \(n + 1). PadPal saves a backup of the whole pad first, so you can restore it."
+            alert.addButton(withTitle: "Set Up Layer \(n + 1)")
+            alert.addButton(withTitle: "Cancel")
+            let carries = snapshot.flatMap { PadTranslate.layout(from: $0, layer: n) }.map { !$0.profile.bindings.isEmpty } ?? false
+            if carries {
+                alert.showsSuppressionButton = true
+                alert.suppressionButton?.title = "Keep layer \(n + 1)’s keys as a layout"
+                alert.suppressionButton?.state = .on
+            }
+            NSApp.activate(ignoringOtherApps: true)
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+            keep = carries && alert.suppressionButton?.state == .on
+            // The question was about the pad as it was read; if it was unplugged meanwhile, ask again.
+            guard gen == padGen else { message = "The pad was reconnected. Choose the layer again."; return }
+        }
+        let old = installed && config.layer != n ? config.layer : nil
+        io.async { [pad] in
+            let result = PadSetup.install(pad, layer: n)
+            let after = pad.backup()
+            DispatchQueue.main.async {
+                guard gen == self.padGen else { self.message = "The pad was unplugged during setup. Check the Pad layer menu."; return }
+                guard result.ok else { self.message = result.text; self.take(after); return }
+                self.config.layer = n
+                self.config.save()
+                self.setOffLayer(false)
+                self.take(after, installedIfUnread: true)
+                var text = result.text
+                if let old { text += " Layer \(old + 1) still has PadPal’s keys." }
+                if keep, let before = result.before, let note = self.addLayout(from: before, layer: n) { text += " " + note }
+                self.message = text
+            }
+        }
+    }
+
+    // MARK: Bringing a pad layer in as a layout
+
+    /// How many of a layer's keys PadPal could bring in as actions.
+    func importable(_ n: Int) -> Int {
+        snapshot.flatMap { PadTranslate.layout(from: $0, layer: n) }?.profile.bindings.count ?? 0
+    }
+
+    /// Reads the pad and adds what one of its own layers does as a new layout.
+    func importPadLayer(_ n: Int) {
+        let gen = padGen
+        io.async { [pad] in
+            let snap = pad.backup()
+            DispatchQueue.main.async {
+                guard gen == self.padGen, let snap else { self.message = "Couldn’t read the pad."; return }
+                self.take(snap)
+                self.message = self.addLayout(from: snap, layer: n) ?? "Layer \(n + 1) has nothing PadPal can carry over."
+            }
+        }
+    }
+
+    /// Adds a layout for each layer of a saved pad backup that holds keys of its own.
+    func importFromBackup() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.directoryURL = Config.backups
+        panel.message = "Choose a pad backup"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let data = try? Data(contentsOf: url), let backup = try? JSONDecoder().decode(PadBackup.self, from: data) else {
+            message = "\(url.lastPathComponent) isn’t a pad backup."
+            return
+        }
+        // A backup file can come from anyone, and its macros would run on a key press: show them first.
+        let found = backup.layers.indices.filter { !backup.layers[$0].isPadPal }
+            .compactMap { PadTranslate.layout(from: backup, layer: $0)?.profile }
+        let risks = found.flatMap(\.riskLines)
+        var strip = false
+        if !risks.isEmpty {
+            switch Self.confirmRisky(risks, file: url.lastPathComponent) {
+            case .alertFirstButtonReturn: strip = true
+            case .alertSecondButtonReturn: break
+            default: return
+            }
+        }
+        let notes = backup.layers.indices.filter { !backup.layers[$0].isPadPal }
+            .compactMap { addLayout(from: backup, layer: $0, withoutRisks: strip) }
+        message = notes.isEmpty ? "\(url.lastPathComponent) has nothing PadPal can carry over."
+            : notes.joined(separator: " ") + (strip ? " Left out \(risks.count) macro\(risks.count == 1 ? "" : "s")." : "")
+    }
+
+    /// Adds the layout for one layer of a backup. Returns a line saying what happened, or nil if the layer had nothing usable.
+    private func addLayout(from backup: PadBackup, layer: Int, withoutRisks: Bool = false) -> String? {
+        guard let made = PadTranslate.layout(from: backup, layer: layer) else { return nil }
+        var p = withoutRisks ? made.profile.withoutRisks : made.profile
+        guard !p.bindings.isEmpty else { return nil }
+        let skipped = made.skipped
+        let base = p.name
+        var n = 2
+        while config.profiles.contains(where: { $0.name == p.name }) { p.name = "\(base)-\(n)"; n += 1 }
+        config.profiles.append(p)
+        editorProfile = p.name
+        configEdited()
+        let count = p.bindings.count
+        return "Added \(p.name) with \(count) key\(count == 1 ? "" : "s")."
+            + (skipped > 0 ? " \(skipped) couldn’t be carried over (layer, lighting or special keys)." : "")
     }
 }
 
@@ -531,7 +731,9 @@ final class RimState: @unchecked Sendable {
 
 /// Backup, install and restore steps shared by the app and the command line.
 enum PadSetup {
-    static func saveBackup(_ pad: PadLink, to url: URL? = nil) -> URL? {
+    static func saveBackup(_ pad: PadLink, to url: URL? = nil) -> URL? { save(pad, to: url)?.url }
+
+    private static func save(_ pad: PadLink, to url: URL? = nil) -> (url: URL, backup: PadBackup)? {
         guard let b = pad.backup() else { return nil }
         try? FileManager.default.createDirectory(at: Config.backups, withIntermediateDirectories: true)
         let stamp = b.date.replacingOccurrences(of: ":", with: "-")
@@ -539,13 +741,14 @@ enum PadSetup {
         let enc = JSONEncoder()
         enc.outputFormatting = [.sortedKeys]
         guard let data = try? enc.encode(b), (try? data.write(to: dest)) != nil else { return nil }
-        return dest
+        return (dest, b)
     }
 
-    static func install(_ pad: PadLink, layer: Int) -> String {
-        guard let saved = saveBackup(pad) else { return "Couldn't back up the pad, so nothing was written." }
-        guard let n = pad.install(layer: layer) else { return "Writing to the pad failed. Backup: \(saved.path)" }
-        return "Pad layer \(layer) ready (\(n) slots changed). Backup: \(saved.lastPathComponent)"
+    /// Backs the pad up, then writes PadPal's codes to a layer (0-based). `before` is the pad as it was.
+    static func install(_ pad: PadLink, layer: Int) -> (text: String, ok: Bool, before: PadBackup?) {
+        guard let saved = save(pad) else { return ("Couldn't back up the pad, so nothing was written.", false, nil) }
+        guard pad.install(layer: layer) != nil else { return ("Writing to the pad failed. Backup: \(saved.url.path)", false, saved.backup) }
+        return ("Layer \(layer + 1) ready. Backup saved: \(saved.url.lastPathComponent).", true, saved.backup)
     }
 
     static func restore(_ pad: PadLink, from url: URL) -> String {
