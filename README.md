@@ -49,7 +49,7 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 - **Menu-bar panel.** Shows the current layout on a picture of the pad; cells flash as you press keys. Choose a layout by hand or let it follow the front app.
 - **Edit layouts.** Opens the editor. Add a layout, give it a color, pick the apps it is active in, then click slots to assign actions. Changes apply as you make them. A slot left as "Same as Default" uses the Default layout's action.
 - **More → Import / Export.** Export one layout or all of them to a `.padpal.json` file. Importing adds layouts and never replaces yours: a clashing name gets a number, and an app you have already assigned stays where it is.
-- **Pad layer.** Moves PadPal to another of the pad's layers. The layer it leaves keeps PadPal's keys until you restore a backup.
+- **Pad layer.** Moves PadPal to another of the pad's layers. The layer it leaves keeps PadPal's key codes, so it does nothing useful by itself afterward. To get its old keys back, restore the backup saved before that layer was first set up (see [Undoing it](#undoing-it)), then choose the layer you want again.
 - **Rim on app switch.** Off, Instant, Fade (through dark), Rotate (the new color chases round the rim) or Sweep (a direct blend from one color to the other).
 - **Hold for Default layout.** Command by default; pick another modifier or turn it off.
 
