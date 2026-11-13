@@ -183,6 +183,7 @@ final class PadLink: @unchecked Sendable {
 
     /// Writes the app's codes to one layer. Returns the number of slots changed, or nil on failure.
     func install(layer: Int) -> Int? {
+        guard let count = layerCount(), (0..<count).contains(layer) else { return nil }
         var changed = 0
         for i in 0..<PadInput.keys.count {
             let want = PadInput.codes[i]

@@ -161,8 +161,10 @@ enum PadTranslate {
         if let n = macroIndex(code, proto: proto) {
             let made: (steps: [Step], dropped: Int) = n < macros.count ? steps(macros[n]) : ([], 0)
             let s = made.steps
-            // A macro made only of keys PadPal can't press is something lost, not an empty key.
-            if s.isEmpty { return made.dropped > 0 ? .skipped : .empty }
+            // A macro with a key PadPal can't press is left out whole: running the rest of it
+            // without that key would do something other than what the pad did.
+            if made.dropped > 0 { return .skipped }
+            if s.isEmpty { return .empty }
             if s.count == 1, let k = s[0].keys { return .action(Binding(label: label(forKeys: k), keys: k)) }
             if s.count == 1, let name = s[0].media, let m = media.values.first(where: { $0.name == name }) {
                 return .action(Binding(label: m.label, media: name))

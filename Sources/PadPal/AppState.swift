@@ -21,6 +21,8 @@ final class AppState: ObservableObject {
     /// Whether the pad's layers have been read since it was plugged in. Nothing is written to the pad until they have.
     enum PadRead { case pending, ok, failed }
     @Published var padRead = PadRead.pending
+    /// Bumped whenever the pad connects or disconnects, so a reading from an earlier connection is thrown away.
+    private var padGen = 0
     @Published var inputAccess = false
     @Published var accessibility = false
     @Published var pinned: String?            // profile name pinned by hand; nil = follow the front app
@@ -142,6 +144,8 @@ final class AppState: ObservableObject {
 
     private func connectionChanged(_ up: Bool) {
         connected = up
+        padGen += 1
+        let gen = padGen
         guard up else { installed = false; layers = []; snapshot = nil; padRead = .pending; setOffLayer(false); return }
         padRead = .pending
         let layer = config.layer
@@ -160,6 +164,7 @@ final class AppState: ObservableObject {
             let snap = pad.backup() ?? pad.backup()
             let fallback = snap == nil ? pad.isInstalled(layer: layer) : false
             DispatchQueue.main.async {
+                guard gen == self.padGen else { return }
                 self.originalKeys = keys
                 self.originalGlow = glow
                 self.setOffLayer(false)
@@ -603,10 +608,12 @@ final class AppState: ObservableObject {
             keep = carries && alert.suppressionButton?.state == .on
         }
         let old = installed && config.layer != n ? config.layer : nil
+        let gen = padGen
         io.async { [pad] in
             let result = PadSetup.install(pad, layer: n)
             let after = pad.backup()
             DispatchQueue.main.async {
+                guard gen == self.padGen else { self.message = "The pad was unplugged during setup. Check the Pad layer menu."; return }
                 guard result.ok else { self.message = result.text; self.take(after); return }
                 self.config.layer = n
                 self.config.save()
@@ -629,10 +636,11 @@ final class AppState: ObservableObject {
 
     /// Reads the pad and adds what one of its own layers does as a new layout.
     func importPadLayer(_ n: Int) {
+        let gen = padGen
         io.async { [pad] in
             let snap = pad.backup()
             DispatchQueue.main.async {
-                guard let snap else { self.message = "Couldn’t read the pad."; return }
+                guard gen == self.padGen, let snap else { self.message = "Couldn’t read the pad."; return }
                 self.take(snap)
                 self.message = self.addLayout(from: snap, layer: n) ?? "Layer \(n + 1) has nothing PadPal can carry over."
             }

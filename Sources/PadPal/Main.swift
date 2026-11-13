@@ -51,6 +51,10 @@ enum Main {
             print("Saved \(url.path)")
         case "setup":
             let layer = args.first.flatMap(Int.init) ?? Config.load().0.layer
+            guard let count = pad.layerCount() else { print("Couldn't read the pad."); return 1 }
+            guard (0..<count).contains(layer), args.first == nil || Int(args[0]) != nil else {
+                print("setup needs a layer from 0 to \(count - 1) (0 is the pad's first layer)"); return 2
+            }
             let result = PadSetup.install(pad, layer: layer)
             print(result.text)
             if !result.ok { return 1 }
