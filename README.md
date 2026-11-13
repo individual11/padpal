@@ -66,7 +66,7 @@ To keep what another layer does, choose **More → Import from pad layer** in th
 
 ### Importing layouts safely
 
-A layout file can carry shell commands, things to open, and macros. Those run with your account's full access the moment the key is pressed, so a layout from a stranger can do real harm. When a file contains any, PadPal lists every one in full before importing and offers to import the layout without them. Read them; if you don't understand one, leave it out.
+A layout file can carry shell commands, things to open, and macros. Those run with your account's full access the moment the key is pressed, so **a layout from a stranger can do real harm**. When a file contains any, PadPal lists every one in full before importing and offers to import the layout without them. Read them; if you don't understand one, leave it out.
 
 <img src="docs/import-warning.png" width="440" alt="The warning PadPal shows before importing a layout with shell commands or macros">
 
