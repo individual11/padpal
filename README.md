@@ -2,6 +2,9 @@
 
 # PadPal
 
+[![CI](https://github.com/individual11/padpal/actions/workflows/ci.yml/badge.svg)](https://github.com/individual11/padpal/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A macOS menu-bar app for the [Work Louder](https://www.worklouder.cc) Creator Micro macro pad. It gives the pad a different layout for every app, lights it in that app's color, and lets you edit everything in a visual editor. It works with the firmware the pad ships with: nothing is flashed.
 
 <p>
@@ -177,6 +180,14 @@ The pad runs QMK firmware with VIA support and exposes two things over USB: an o
 
 - **Keys.** PadPal uses the VIA channel once to set one layer's keys to codes macOS has no meaning for (F21–F24 and some international and language keys). Pressing them types nothing. PadPal listens to the pad's keyboard interface directly, sees which code arrived, and runs the action for the front app. Layouts are therefore pure software: switching apps never writes to the pad.
 - **Lights.** Color and effect changes go over the VIA channel and are not saved to the pad's memory, so they vanish when it is unplugged. PadPal restores the pad's own lighting when it quits.
+
+## Tests
+
+```bash
+./test.sh
+```
+
+The tests cover the parts that need no pad: translating the pad's own key codes, parsing shortcuts, reading config and layout files, the import safety checks, and every file in the [layouts](layouts) folder. They run on every pull request. Talking to the pad, the macOS permissions and the windows are checked by hand.
 
 ## Signing
 
