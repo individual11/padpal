@@ -1,0 +1,82 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.apple.Terminal",
+        "com.googlecode.iterm2",
+        "com.mitchellh.ghostty",
+        "dev.warp.Warp-Stable"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+d",
+          "label": "Split pane"
+        },
+        "a2": {
+          "keys": "cmd+f",
+          "label": "Find"
+        },
+        "a3": {
+          "keys": "cmd+=",
+          "label": "Bigger text"
+        },
+        "a4": {
+          "keys": "cmd+-",
+          "label": "Smaller text"
+        },
+        "b1": {
+          "keys": "ctrl+c",
+          "label": "Interrupt"
+        },
+        "b2": {
+          "keys": "up",
+          "label": "Previous command"
+        },
+        "b3": {
+          "keys": "ctrl+u",
+          "label": "Clear line"
+        },
+        "b4": {
+          "keys": "return",
+          "label": "Run"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "cmd+k",
+          "label": "Clear"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "cmd+shift+[",
+          "label": "Previous tab"
+        },
+        "roller.click": {
+          "keys": "cmd+n",
+          "label": "New window"
+        },
+        "roller.cw": {
+          "keys": "cmd+shift+]",
+          "label": "Next tab"
+        },
+        "top1": {
+          "keys": "cmd+t",
+          "label": "New tab"
+        },
+        "top2": {
+          "keys": "cmd+w",
+          "label": "Close tab"
+        }
+      },
+      "hue": 30,
+      "name": "Terminal",
+      "sat": 230
+    }
+  ]
+}

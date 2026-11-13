@@ -1,0 +1,79 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "notion.id"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+alt+1",
+          "label": "Heading 1"
+        },
+        "a2": {
+          "keys": "cmd+alt+2",
+          "label": "Heading 2"
+        },
+        "a3": {
+          "keys": "cmd+alt+4",
+          "label": "To-do"
+        },
+        "a4": {
+          "keys": "cmd+alt+7",
+          "label": "Toggle"
+        },
+        "b1": {
+          "keys": "cmd+\\",
+          "label": "Sidebar"
+        },
+        "b2": {
+          "keys": "cmd+shift+m",
+          "label": "Comment"
+        },
+        "b3": {
+          "keys": "cmd+d",
+          "label": "Duplicate"
+        },
+        "b4": {
+          "keys": "cmd+alt+8",
+          "label": "Code block"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "cmd+n",
+          "label": "New page"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "cmd+shift+up",
+          "label": "Move block up"
+        },
+        "roller.click": {
+          "keys": "cmd+p",
+          "label": "Search"
+        },
+        "roller.cw": {
+          "keys": "cmd+shift+down",
+          "label": "Move block down"
+        },
+        "top1": {
+          "keys": "cmd+[",
+          "label": "Back"
+        },
+        "top2": {
+          "keys": "cmd+]",
+          "label": "Forward"
+        }
+      },
+      "hue": 0,
+      "name": "Notion",
+      "sat": 0
+    }
+  ]
+}

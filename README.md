@@ -58,6 +58,30 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 - **Rim on app switch.** Off, Instant, Fade (through dark), Rotate (the new color chases round the rim) or Sweep (a direct blend from one color to the other).
 - **Hold for Default layout.** Command by default; pick another modifier or turn it off.
 
+### Ready-made layouts
+
+The [layouts](layouts) folder has layouts you can import with **More → Import layouts…** in the editor. Each one fills the roller, the knob, the top two keys and the two middle rows, and leaves the bottom row to your Default layout. None of them contains shell commands, things to open or macros.
+
+| File | App | What it covers |
+| --- | --- | --- |
+| [claude.padpal.json](layouts/claude.padpal.json) | Claude | New session, command palette, sidebar, files, changes, find, stop, send |
+| [browser.padpal.json](layouts/browser.padpal.json) | Safari, Chrome, Arc, Firefox, Edge, Brave | Tabs on the roller, new/close/reopen tab, back, forward, reload |
+| [vscode.padpal.json](layouts/vscode.padpal.json) | VS Code | Editors on the roller, Quick Open, Command Palette, terminal, search, go to definition, comment, format, rename, debug |
+| [spotify.padpal.json](layouts/spotify.padpal.json) | Spotify | Seek on the roller, search, like, shuffle, repeat, queue, Liked Songs, Home |
+| [notion.padpal.json](layouts/notion.padpal.json) | Notion | Move blocks on the roller, search, new page, headings, to-do, toggle, comment, duplicate, code block |
+| [slack.padpal.json](layouts/slack.padpal.json) | Slack | Unread channels on the roller, jump, unreads, threads, DMs, activity, huddle, mute, status |
+| [spark.padpal.json](layouts/spark.padpal.json) | Spark | Messages on the roller, search, new email, reply, reply all, forward, snooze, archive, delete, pin, mark unread |
+| [chatgpt.padpal.json](layouts/chatgpt.padpal.json) | ChatGPT (including Codex) | Search chats, new chat, sidebar, copy response, copy code, stop, send |
+| [mail.padpal.json](layouts/mail.padpal.json) | Apple Mail | Messages on the roller, search, new message, get mail, send, reply, reply all, forward, flag, archive, delete, junk, mark unread |
+| [terminal.padpal.json](layouts/terminal.padpal.json) | Terminal, iTerm, Ghostty, Warp | Tabs on the roller, new/close tab, new window, clear, split pane, find, text size, interrupt, previous command, clear line |
+| [finder.padpal.json](layouts/finder.padpal.json) | Finder | Items on the roller, open, Quick Look, back, forward, enclosing folder, new folder, Go to Folder, hidden files, view modes, Get Info |
+| [zoom.padpal.json](layouts/zoom.padpal.json) | Zoom | Mute, camera, share screen, chat, participants, raise hand, switch view, full screen, record, leave |
+| [obsidian.padpal.json](layouts/obsidian.padpal.json) | Obsidian | Tabs on the roller, quick switcher, command palette, back, forward, new note, search, edit/preview, graph, checkbox, link, bold |
+
+They rely on each app's default keyboard shortcuts, so a key does nothing useful if you have changed that shortcut in the app. The Spark and ChatGPT layouts have not been checked against the apps key by key; Spark in particular lets you choose between shortcut schemes. Fix any key that is off in the editor.
+
+One browser layout serves every browser, and one terminal layout every terminal app, because they share these shortcuts. The Zoom layout only applies while Zoom is the front app; to mute from anywhere, turn on Zoom's global mute shortcut in its settings and put that on a key in your Default layout. If an app already belongs to one of your layouts, the imported layout arrives without it; move the app across in the editor.
+
 ### Other layers
 
 The pad cannot tell the computer which layer it is on, and the computer cannot switch it; only the pad's layer key can. PadPal notices when a key arrives that its own layer could not have sent. The panel then says the pad seems to be on another layer, and the pad goes back to its own lighting until you press a PadPal key again. A colored rim therefore means PadPal is live.

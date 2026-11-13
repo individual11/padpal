@@ -1,0 +1,72 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.readdle.smartemail-Mac",
+        "com.readdle.SparkDesktop"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+r",
+          "label": "Reply"
+        },
+        "a2": {
+          "keys": "cmd+shift+r",
+          "label": "Reply all"
+        },
+        "a3": {
+          "keys": "cmd+shift+f",
+          "label": "Forward"
+        },
+        "a4": {
+          "keys": "cmd+shift+s",
+          "label": "Snooze"
+        },
+        "b1": {
+          "keys": "ctrl+cmd+a",
+          "label": "Archive"
+        },
+        "b2": {
+          "keys": "cmd+delete",
+          "label": "Delete"
+        },
+        "b3": {
+          "keys": "cmd+shift+p",
+          "label": "Pin"
+        },
+        "b4": {
+          "keys": "cmd+shift+u",
+          "label": "Mark unread"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "cmd+n",
+          "label": "New email"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "up",
+          "label": "Previous message"
+        },
+        "roller.click": {
+          "keys": "cmd+alt+f",
+          "label": "Search"
+        },
+        "roller.cw": {
+          "keys": "down",
+          "label": "Next message"
+        }
+      },
+      "hue": 245,
+      "name": "Spark",
+      "sat": 220
+    }
+  ]
+}

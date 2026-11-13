@@ -1,0 +1,79 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.apple.finder"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+up",
+          "label": "Enclosing folder"
+        },
+        "a2": {
+          "keys": "cmd+shift+n",
+          "label": "New folder"
+        },
+        "a3": {
+          "keys": "cmd+shift+g",
+          "label": "Go to Folder"
+        },
+        "a4": {
+          "keys": "cmd+shift+.",
+          "label": "Hidden files"
+        },
+        "b1": {
+          "keys": "cmd+1",
+          "label": "Icons"
+        },
+        "b2": {
+          "keys": "cmd+2",
+          "label": "List"
+        },
+        "b3": {
+          "keys": "cmd+3",
+          "label": "Columns"
+        },
+        "b4": {
+          "keys": "cmd+i",
+          "label": "Get Info"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "cmd+y",
+          "label": "Quick Look"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "up",
+          "label": "Previous item"
+        },
+        "roller.click": {
+          "keys": "cmd+down",
+          "label": "Open"
+        },
+        "roller.cw": {
+          "keys": "down",
+          "label": "Next item"
+        },
+        "top1": {
+          "keys": "cmd+[",
+          "label": "Back"
+        },
+        "top2": {
+          "keys": "cmd+]",
+          "label": "Forward"
+        }
+      },
+      "hue": 140,
+      "name": "Finder",
+      "sat": 150
+    }
+  ]
+}

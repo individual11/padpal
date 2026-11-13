@@ -1,0 +1,79 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.tinyspeck.slackmacgap"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+shift+a",
+          "label": "Unreads"
+        },
+        "a2": {
+          "keys": "cmd+shift+t",
+          "label": "Threads"
+        },
+        "a3": {
+          "keys": "cmd+shift+k",
+          "label": "DMs"
+        },
+        "a4": {
+          "keys": "cmd+shift+m",
+          "label": "Activity"
+        },
+        "b1": {
+          "keys": "cmd+shift+h",
+          "label": "Huddle"
+        },
+        "b2": {
+          "keys": "cmd+shift+space",
+          "label": "Mute mic"
+        },
+        "b3": {
+          "keys": "cmd+shift+y",
+          "label": "Set status"
+        },
+        "b4": {
+          "keys": "cmd+.",
+          "label": "Right pane"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "escape",
+          "label": "Mark read"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "alt+shift+up",
+          "label": "Previous unread"
+        },
+        "roller.click": {
+          "keys": "cmd+k",
+          "label": "Jump to"
+        },
+        "roller.cw": {
+          "keys": "alt+shift+down",
+          "label": "Next unread"
+        },
+        "top1": {
+          "keys": "cmd+[",
+          "label": "Back"
+        },
+        "top2": {
+          "keys": "cmd+]",
+          "label": "Forward"
+        }
+      },
+      "hue": 200,
+      "name": "Slack",
+      "sat": 220
+    }
+  ]
+}
