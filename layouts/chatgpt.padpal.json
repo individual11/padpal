@@ -1,0 +1,64 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.openai.chat",
+        "com.openai.codex"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "ctrl+cmd+s",
+          "label": "Sidebar"
+        },
+        "a2": {
+          "keys": "cmd+shift+c",
+          "label": "Copy response"
+        },
+        "a3": {
+          "keys": "cmd+shift+;",
+          "label": "Copy code"
+        },
+        "a4": {
+          "keys": "cmd+f",
+          "label": "Find"
+        },
+        "b1": {
+          "keys": "escape",
+          "label": "Stop"
+        },
+        "b2": {
+          "keys": "cmd+,",
+          "label": "Settings"
+        },
+        "b3": {
+          "keys": "cmd+w",
+          "label": "Close window"
+        },
+        "b4": {
+          "keys": "return",
+          "label": "Send"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "cmd+n",
+          "label": "New chat"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.click": {
+          "keys": "cmd+k",
+          "label": "Search chats"
+        }
+      },
+      "hue": 115,
+      "name": "ChatGPT",
+      "sat": 200
+    }
+  ]
+}

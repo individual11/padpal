@@ -1,0 +1,79 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.microsoft.VSCode"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+b",
+          "label": "Sidebar"
+        },
+        "a2": {
+          "keys": "ctrl+`",
+          "label": "Terminal"
+        },
+        "a3": {
+          "keys": "cmd+shift+f",
+          "label": "Search files"
+        },
+        "a4": {
+          "keys": "f12",
+          "label": "Go to definition"
+        },
+        "b1": {
+          "keys": "cmd+/",
+          "label": "Comment line"
+        },
+        "b2": {
+          "keys": "alt+shift+f",
+          "label": "Format"
+        },
+        "b3": {
+          "keys": "f2",
+          "label": "Rename symbol"
+        },
+        "b4": {
+          "keys": "f5",
+          "label": "Start debugging"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "cmd+shift+p",
+          "label": "Command Palette"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "cmd+alt+left",
+          "label": "Previous editor"
+        },
+        "roller.click": {
+          "keys": "cmd+p",
+          "label": "Quick Open"
+        },
+        "roller.cw": {
+          "keys": "cmd+alt+right",
+          "label": "Next editor"
+        },
+        "top1": {
+          "keys": "ctrl+-",
+          "label": "Go back"
+        },
+        "top2": {
+          "keys": "ctrl+shift+-",
+          "label": "Go forward"
+        }
+      },
+      "hue": 165,
+      "name": "VS Code",
+      "sat": 230
+    }
+  ]
+}

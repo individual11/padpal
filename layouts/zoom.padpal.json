@@ -1,0 +1,55 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "us.zoom.xos"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+shift+s",
+          "label": "Share screen"
+        },
+        "a2": {
+          "keys": "cmd+shift+h",
+          "label": "Chat"
+        },
+        "a3": {
+          "keys": "cmd+u",
+          "label": "Participants"
+        },
+        "a4": {
+          "keys": "alt+y",
+          "label": "Raise hand"
+        },
+        "b1": {
+          "keys": "cmd+shift+w",
+          "label": "Switch view"
+        },
+        "b2": {
+          "keys": "cmd+shift+f",
+          "label": "Full screen"
+        },
+        "b3": {
+          "keys": "cmd+shift+r",
+          "label": "Record"
+        },
+        "b4": {
+          "keys": "cmd+w",
+          "label": "Leave"
+        },
+        "knob.click": {
+          "keys": "cmd+shift+a",
+          "label": "Mute"
+        },
+        "roller.click": {
+          "keys": "cmd+shift+v",
+          "label": "Camera"
+        }
+      },
+      "hue": 165,
+      "name": "Zoom",
+      "sat": 255
+    }
+  ]
+}

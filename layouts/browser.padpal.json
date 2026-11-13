@@ -1,0 +1,60 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.apple.Safari",
+        "com.google.Chrome",
+        "company.thebrowser.Browser",
+        "org.mozilla.firefox",
+        "com.microsoft.edgemac",
+        "com.brave.Browser"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+[",
+          "label": "Back"
+        },
+        "a2": {
+          "keys": "cmd+]",
+          "label": "Forward"
+        },
+        "a3": {
+          "keys": "cmd+r",
+          "label": "Reload"
+        },
+        "a4": {
+          "keys": "cmd+shift+t",
+          "label": "Reopen tab"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "ctrl+shift+tab",
+          "label": "Previous tab"
+        },
+        "roller.cw": {
+          "keys": "ctrl+tab",
+          "label": "Next tab"
+        },
+        "top1": {
+          "keys": "cmd+t",
+          "label": "New tab"
+        },
+        "top2": {
+          "keys": "cmd+w",
+          "label": "Close tab"
+        }
+      },
+      "hue": 157,
+      "name": "Browser",
+      "sat": 188
+    }
+  ]
+}

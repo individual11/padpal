@@ -1,0 +1,79 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "md.obsidian"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+n",
+          "label": "New note"
+        },
+        "a2": {
+          "keys": "cmd+shift+f",
+          "label": "Search vault"
+        },
+        "a3": {
+          "keys": "cmd+e",
+          "label": "Edit / preview"
+        },
+        "a4": {
+          "keys": "cmd+g",
+          "label": "Graph"
+        },
+        "b1": {
+          "keys": "cmd+l",
+          "label": "Checkbox"
+        },
+        "b2": {
+          "keys": "cmd+k",
+          "label": "Link"
+        },
+        "b3": {
+          "keys": "cmd+b",
+          "label": "Bold"
+        },
+        "b4": {
+          "keys": "cmd+w",
+          "label": "Close tab"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.click": {
+          "keys": "cmd+p",
+          "label": "Command palette"
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "roller.ccw": {
+          "keys": "ctrl+shift+tab",
+          "label": "Previous tab"
+        },
+        "roller.click": {
+          "keys": "cmd+o",
+          "label": "Quick switcher"
+        },
+        "roller.cw": {
+          "keys": "ctrl+tab",
+          "label": "Next tab"
+        },
+        "top1": {
+          "keys": "cmd+alt+left",
+          "label": "Back"
+        },
+        "top2": {
+          "keys": "cmd+alt+right",
+          "label": "Forward"
+        }
+      },
+      "hue": 190,
+      "name": "Obsidian",
+      "sat": 220
+    }
+  ]
+}

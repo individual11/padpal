@@ -1,0 +1,63 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.anthropic.claudefordesktop"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "cmd+b",
+          "label": "Sidebar"
+        },
+        "a2": {
+          "keys": "cmd+shift+f",
+          "label": "Files"
+        },
+        "a3": {
+          "keys": "cmd+shift+d",
+          "label": "Changes"
+        },
+        "a4": {
+          "keys": "cmd+f",
+          "label": "Find"
+        },
+        "b1": {
+          "keys": "escape",
+          "label": "Stop"
+        },
+        "b2": {
+          "keys": "cmd+shift+t",
+          "label": "Reopen closed"
+        },
+        "b3": {
+          "keys": "cmd+shift+o",
+          "label": "Open folder"
+        },
+        "b4": {
+          "keys": "return",
+          "label": "Send"
+        },
+        "knob.ccw": {
+          "label": "Scroll down",
+          "scroll": -3
+        },
+        "knob.cw": {
+          "label": "Scroll up",
+          "scroll": 3
+        },
+        "top1": {
+          "keys": "cmd+n",
+          "label": "New session"
+        },
+        "top2": {
+          "keys": "cmd+k",
+          "label": "Command palette"
+        }
+      },
+      "hue": 10,
+      "name": "Claude",
+      "sat": 180
+    }
+  ]
+}

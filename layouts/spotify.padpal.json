@@ -1,0 +1,59 @@
+{
+  "padpalLayouts": 1,
+  "profiles": [
+    {
+      "apps": [
+        "com.spotify.client"
+      ],
+      "bindings": {
+        "a1": {
+          "keys": "alt+shift+b",
+          "label": "Like"
+        },
+        "a2": {
+          "keys": "cmd+s",
+          "label": "Shuffle"
+        },
+        "a3": {
+          "keys": "cmd+r",
+          "label": "Repeat"
+        },
+        "a4": {
+          "keys": "alt+shift+q",
+          "label": "Queue"
+        },
+        "b1": {
+          "keys": "cmd+[",
+          "label": "Back"
+        },
+        "b2": {
+          "keys": "cmd+]",
+          "label": "Forward"
+        },
+        "b3": {
+          "keys": "alt+shift+s",
+          "label": "Liked Songs"
+        },
+        "b4": {
+          "keys": "alt+shift+h",
+          "label": "Home"
+        },
+        "roller.ccw": {
+          "keys": "cmd+shift+left",
+          "label": "Seek back"
+        },
+        "roller.click": {
+          "keys": "cmd+k",
+          "label": "Search"
+        },
+        "roller.cw": {
+          "keys": "cmd+shift+right",
+          "label": "Seek forward"
+        }
+      },
+      "hue": 85,
+      "name": "Spotify",
+      "sat": 230
+    }
+  ]
+}
