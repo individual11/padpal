@@ -590,6 +590,7 @@ final class AppState: ObservableObject {
             return
         }
         var keep = false
+        let gen = padGen
         if layers[n].inUse > 0 {
             let count = layers[n].inUse
             let alert = NSAlert()
@@ -606,9 +607,10 @@ final class AppState: ObservableObject {
             NSApp.activate(ignoringOtherApps: true)
             guard alert.runModal() == .alertFirstButtonReturn else { return }
             keep = carries && alert.suppressionButton?.state == .on
+            // The question was about the pad as it was read; if it was unplugged meanwhile, ask again.
+            guard gen == padGen else { message = "The pad was reconnected. Choose the layer again."; return }
         }
         let old = installed && config.layer != n ? config.layer : nil
-        let gen = padGen
         io.async { [pad] in
             let result = PadSetup.install(pad, layer: n)
             let after = pad.backup()
@@ -658,14 +660,29 @@ final class AppState: ObservableObject {
             message = "\(url.lastPathComponent) isn’t a pad backup."
             return
         }
-        let notes = backup.layers.indices.filter { !backup.layers[$0].isPadPal }.compactMap { addLayout(from: backup, layer: $0) }
-        message = notes.isEmpty ? "\(url.lastPathComponent) has nothing PadPal can carry over." : notes.joined(separator: " ")
+        // A backup file can come from anyone, and its macros would run on a key press: show them first.
+        let found = backup.layers.indices.filter { !backup.layers[$0].isPadPal }
+            .compactMap { PadTranslate.layout(from: backup, layer: $0)?.profile }
+        let risks = found.flatMap(\.riskLines)
+        var strip = false
+        if !risks.isEmpty {
+            switch Self.confirmRisky(risks, file: url.lastPathComponent) {
+            case .alertFirstButtonReturn: strip = true
+            case .alertSecondButtonReturn: break
+            default: return
+            }
+        }
+        let notes = backup.layers.indices.filter { !backup.layers[$0].isPadPal }
+            .compactMap { addLayout(from: backup, layer: $0, withoutRisks: strip) }
+        message = notes.isEmpty ? "\(url.lastPathComponent) has nothing PadPal can carry over."
+            : notes.joined(separator: " ") + (strip ? " Left out \(risks.count) macro\(risks.count == 1 ? "" : "s")." : "")
     }
 
     /// Adds the layout for one layer of a backup. Returns a line saying what happened, or nil if the layer had nothing usable.
-    private func addLayout(from backup: PadBackup, layer: Int) -> String? {
-        guard let made = PadTranslate.layout(from: backup, layer: layer), !made.profile.bindings.isEmpty else { return nil }
-        var p = made.profile
+    private func addLayout(from backup: PadBackup, layer: Int, withoutRisks: Bool = false) -> String? {
+        guard let made = PadTranslate.layout(from: backup, layer: layer) else { return nil }
+        var p = withoutRisks ? made.profile.withoutRisks : made.profile
+        guard !p.bindings.isEmpty else { return nil }
         let skipped = made.skipped
         let base = p.name
         var n = 2

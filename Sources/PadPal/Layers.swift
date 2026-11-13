@@ -159,7 +159,9 @@ enum PadTranslate {
             return .action(Binding(label: label(forKeys: keys), keys: keys))
         }
         if let n = macroIndex(code, proto: proto) {
-            let made: (steps: [Step], dropped: Int) = n < macros.count ? steps(macros[n]) : ([], 0)
+            // A macro the reading doesn't include (the read was cut short) is unknown, not empty.
+            guard n < macros.count else { return .skipped }
+            let made = steps(macros[n])
             let s = made.steps
             // A macro with a key PadPal can't press is left out whole: running the rest of it
             // without that key would do something other than what the pad did.
