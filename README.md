@@ -44,6 +44,11 @@ The first build creates a local code-signing identity so that macOS keeps the ap
 3. **Choose a layer.** Click the grid icon in the menu bar. PadPal takes over one of the pad's four layers; the other three keep working as they do now. Pick the layer (the menu shows how many keys each one has in use) and click **Set up pad**. This writes PadPal's key codes to that layer after saving a backup of the whole keymap. If the layer already has keys, PadPal asks first and offers to keep them as a layout.
 4. **Switch the pad to that layer** with the pad's own layer key.
 
+<p>
+  <img src="docs/choose-layer.png" width="340" alt="The PadPal panel on first run, asking which of the pad's layers to use">
+  <img src="docs/setup-confirm.png" width="290" alt="PadPal asking before it replaces a layer's keys, with the option to keep them as a layout">
+</p>
+
 ## Using it
 
 - **Menu-bar panel.** Shows the current layout on a picture of the pad; cells flash as you press keys. Choose a layout by hand or let it follow the front app.
